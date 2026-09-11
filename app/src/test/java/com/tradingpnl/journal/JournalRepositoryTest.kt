@@ -1,6 +1,7 @@
 package com.tradingpnl.journal
 
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.runBlocking
@@ -13,6 +14,10 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.security.MessageDigest
 import java.util.UUID
 
 @RunWith(RobolectricTestRunner::class)
@@ -29,7 +34,10 @@ class JournalRepositoryTest {
     }
 
     @After
-    fun tearDown() = database.close()
+    fun tearDown() {
+        database.close()
+        File(context.filesDir, "trade_images").deleteRecursively()
+    }
 
     @Test
     fun addUpdateDeleteAndDuplicateAreCommitted() = runBlocking {
@@ -141,15 +149,119 @@ class JournalRepositoryTest {
     @Test
     fun csvIncludesRequiredColumnsAndEscapesUserText() {
         val csv = BackupCodec.exportCsv(listOf(trade("csv", "win", 2.0).copy(notes = "one, \"two\"")))
-        assertTrue(csv.startsWith("id,date,entryTime,result,pnl,symbol,notes"))
+        assertTrue(csv.startsWith("id,date,entryTime,result,pnl,symbol,setup,session,emotion,mistakes"))
         assertTrue(csv.contains("\"one, \"\"two\"\"\""))
         assertFalse(csv.contains("null"))
+    }
+
+    @Test
+    fun v2MetadataRoundTripsAndValidatesScore() {
+        val original = trade("story", "win", 125.0).copy(
+            setup = "Breakout",
+            session = "London",
+            emotion = "Calm",
+            mistakes = "Early exit|FOMO",
+            plannedR = 2.0,
+            realizedR = 1.4,
+            executionScore = 4,
+            reviewed = true
+        )
+        val parsed = BackupCodec.parseJson(
+            BackupCodec.exportJson(listOf(original), SettingsEntity(), "test")
+        ).trades.single()
+        assertEquals("Breakout", parsed.setup)
+        assertEquals("London", parsed.session)
+        assertEquals("Early exit|FOMO", parsed.mistakes)
+        assertEquals(1.4, parsed.realizedR!!, 0.0)
+        assertTrue(parsed.reviewed)
+        assertFails { TradeValidator.validate(original.copy(executionScore = 6)) }
+    }
+
+    @Test
+    fun deletingTradeCascadesAttachmentRow() = runBlocking {
+        repository.add(trade("with-image", "win", 10.0))
+        repository.addAttachment(attachment("image-1", "with-image", "with-image/image-1.png", "0".repeat(64)))
+        assertEquals(1, repository.allAttachments().size)
+        repository.delete("with-image")
+        assertTrue(repository.allAttachments().isEmpty())
+    }
+
+    @Test
+    fun completePackageRoundTripsJournalAndImageChecksum() = runBlocking {
+        val item = trade("package", "loss", 30.0).copy(setup = "Reversal", reviewed = true)
+        repository.add(item)
+        val store = AttachmentStore(context, repository)
+        val bytes = "offline-chart-image".toByteArray()
+        val hash = bytes.sha256()
+        val image = attachment("chart", item.id, "${item.id}/chart.png", hash)
+            .copy(sizeBytes = bytes.size.toLong())
+        store.fileFor(image.relativePath).apply { parentFile?.mkdirs(); writeBytes(bytes) }
+        repository.addAttachment(image)
+        val output = ByteArrayOutputStream()
+        BackupPackageCodec.write(
+            output,
+            BackupCodec.exportJson(repository.allTrades(), repository.getSettings(), "test"),
+            repository.allAttachments(),
+            store
+        )
+        val staged = BackupPackageCodec.read(ByteArrayInputStream(output.toByteArray()), context.cacheDir)
+        try {
+            assertEquals("package", staged.backup.trades.single().id)
+            assertEquals("Reversal", staged.backup.trades.single().setup)
+            assertEquals(hash, staged.attachments.single().sha256)
+        } finally {
+            staged.directory.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun migrationOneToTwoKeepsOldTradeAndAddsStoryDefaults() = runBlocking {
+        database.close()
+        val name = "migration-${UUID.randomUUID()}.db"
+        val path = context.getDatabasePath(name)
+        path.parentFile?.mkdirs()
+        val legacy = SQLiteDatabase.openOrCreateDatabase(path, null)
+        legacy.execSQL("CREATE TABLE trades (id TEXT NOT NULL PRIMARY KEY, date TEXT NOT NULL, timestamp INTEGER NOT NULL, result TEXT NOT NULL, pnl REAL NOT NULL, symbol TEXT NOT NULL, notes TEXT NOT NULL, entryTime TEXT NOT NULL, createdAt INTEGER NOT NULL, updatedAt INTEGER NOT NULL)")
+        legacy.execSQL("CREATE INDEX index_trades_date ON trades(date)")
+        legacy.execSQL("CREATE INDEX index_trades_timestamp ON trades(timestamp)")
+        legacy.execSQL("CREATE INDEX index_trades_symbol ON trades(symbol)")
+        legacy.execSQL("CREATE INDEX index_trades_result ON trades(result)")
+        legacy.execSQL("CREATE TABLE settings (id INTEGER NOT NULL PRIMARY KEY, theme TEXT NOT NULL, startingBalance REAL, profitTarget REAL, maxDrawdown REAL, dailyDrawdown REAL, backupFolderUri TEXT)")
+        legacy.execSQL("INSERT INTO trades VALUES ('legacy','2026-09-10',1,'win',9.0,'NQ','','09:30',1,1)")
+        legacy.version = 1
+        legacy.close()
+        val migrated = Room.databaseBuilder(context, JournalDatabase::class.java, name)
+            .addMigrations(JournalDatabase.MIGRATION_1_2)
+            .build()
+        val saved = JournalRepository(migrated).allTrades().single()
+        assertEquals("legacy", saved.id)
+        assertEquals("", saved.setup)
+        assertFalse(saved.reviewed)
+        migrated.close()
+        context.deleteDatabase(name)
+        database = Room.inMemoryDatabaseBuilder(context, JournalDatabase::class.java).build()
+        repository = JournalRepository(database)
     }
 
     private fun trade(id: String, result: String, pnl: Double): TradeEntity {
         val now = 1_789_000_000_000L
         return TradeEntity(id, "2026-09-10", now, result, pnl, "EURUSD", "", "09:30", now, now)
     }
+
+    private fun attachment(id: String, tradeId: String, path: String, sha: String) = AttachmentEntity(
+        id = id,
+        tradeId = tradeId,
+        kind = "before",
+        fileName = "chart.png",
+        mimeType = "image/png",
+        relativePath = path,
+        sha256 = sha,
+        sizeBytes = 1,
+        createdAt = 1_789_000_000_000L
+    )
+
+    private fun ByteArray.sha256(): String = MessageDigest.getInstance("SHA-256")
+        .digest(this).joinToString("") { "%02x".format(it) }
 
     private fun assertFails(block: () -> Unit) {
         var failed = false

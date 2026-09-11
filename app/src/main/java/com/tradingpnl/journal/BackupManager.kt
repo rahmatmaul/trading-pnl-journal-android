@@ -16,6 +16,7 @@ import java.util.Locale
 class BackupManager(
     private val context: Context,
     private val repository: JournalRepository,
+    private val attachmentStore: AttachmentStore,
     private val scope: CoroutineScope,
     private val appVersion: String,
     private val onResult: (Boolean, String) -> Unit
@@ -55,6 +56,17 @@ class BackupManager(
         } ?: error("Unable to open the selected file")
     }
 
+    suspend fun writePackage(uri: Uri) = withContext(Dispatchers.IO) {
+        context.contentResolver.openOutputStream(uri, "wt")?.use { output ->
+            BackupPackageCodec.write(
+                output,
+                BackupCodec.exportJson(repository.allTrades(), repository.getSettings(), appVersion),
+                repository.allAttachments(),
+                attachmentStore
+            )
+        } ?: error("Unable to open the selected package file")
+    }
+
     fun folderName(uriString: String?): String? {
         if (uriString.isNullOrBlank()) return null
         return DocumentFile.fromTreeUri(context, Uri.parse(uriString))?.name ?: "Selected folder"
@@ -70,32 +82,47 @@ class BackupManager(
             ?: error("Backup folder is no longer available")
         check(folder.exists() && folder.canWrite()) { "Backup folder is not writable; choose it again" }
 
-        val json = BackupCodec.exportJson(repository.allTrades(), settings, appVersion)
         val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
-        writeNewFile(folder, "TradingJournal-$stamp.json", json)
+        writeNewPackage(folder, "TradingJournal-$stamp.tpjbackup")
 
         val tempName = "TradingJournal-latest.tmp"
         folder.findFile(tempName)?.delete()
-        val temp = folder.createFile("application/json", tempName) ?: error("Unable to create backup file")
-        context.contentResolver.openOutputStream(temp.uri, "wt")?.bufferedWriter(Charsets.UTF_8)?.use {
-            it.write(json)
-            it.flush()
+        val temp = folder.createFile("application/octet-stream", tempName) ?: error("Unable to create backup file")
+        context.contentResolver.openOutputStream(temp.uri, "wt")?.use { output ->
+            BackupPackageCodec.write(
+                output,
+                BackupCodec.exportJson(repository.allTrades(), settings, appVersion),
+                repository.allAttachments(),
+                attachmentStore
+            )
         } ?: error("Unable to write backup file")
-        folder.findFile("TradingJournal-latest.json")?.delete()
-        check(temp.renameTo("TradingJournal-latest.json")) { "Unable to finalize latest backup" }
+        folder.findFile("TradingJournal-latest.tpjbackup")?.delete()
+        check(temp.renameTo("TradingJournal-latest.tpjbackup")) { "Unable to finalize latest backup" }
 
         folder.listFiles()
-            .filter { it.name?.matches(Regex("TradingJournal-\\d{8}-\\d{6}(?: \\(\\d+\\))?\\.json")) == true }
+            .filter { it.name?.matches(Regex("TradingJournal-\\d{8}-\\d{6}(?: \\(\\d+\\))?\\.tpjbackup")) == true }
             .sortedByDescending { it.lastModified() }
             .drop(5)
             .forEach { it.delete() }
     }
 
-    private fun writeNewFile(folder: DocumentFile, name: String, text: String) {
-        val file = folder.createFile("application/json", name) ?: error("Unable to create dated backup")
-        context.contentResolver.openOutputStream(file.uri, "wt")?.bufferedWriter(Charsets.UTF_8)?.use {
-            it.write(text)
-            it.flush()
-        } ?: error("Unable to write dated backup")
+    private suspend fun writeNewPackage(folder: DocumentFile, name: String) {
+        val tempName = "$name.tmp"
+        folder.findFile(tempName)?.delete()
+        val temp = folder.createFile("application/octet-stream", tempName) ?: error("Unable to create dated backup")
+        try {
+            context.contentResolver.openOutputStream(temp.uri, "wt")?.use { output ->
+                BackupPackageCodec.write(
+                    output,
+                    BackupCodec.exportJson(repository.allTrades(), repository.getSettings(), appVersion),
+                    repository.allAttachments(),
+                    attachmentStore
+                )
+            } ?: error("Unable to write dated backup")
+            check(temp.renameTo(name)) { "Unable to finalize dated backup" }
+        } catch (error: Exception) {
+            temp.delete()
+            throw error
+        }
     }
 }

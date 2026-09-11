@@ -21,15 +21,42 @@ object TradeValidator {
         require(trade.result == "win" || trade.result == "loss") { "Result must be win or loss" }
         require(trade.pnl.isFinite()) { "PnL must be a finite number" }
         require(trade.symbol.length <= 40) { "Symbol is longer than 40 characters" }
-        require(trade.notes.length <= 1000) { "Notes are longer than 1000 characters" }
+        require(trade.notes.length <= 3000) { "Notes are longer than 3000 characters" }
         require(trade.entryTime.length <= 20) { "Entry time is longer than 20 characters" }
+        require(trade.setup.length <= 60) { "Setup is longer than 60 characters" }
+        require(trade.session.length <= 40) { "Session is longer than 40 characters" }
+        require(trade.emotion.length <= 40) { "Emotion is longer than 40 characters" }
+        require(trade.mistakes.length <= 300) { "Mistake tags are longer than 300 characters" }
+        require(trade.plannedR == null || (trade.plannedR.isFinite() && trade.plannedR >= 0)) { "Planned R must be zero or greater" }
+        require(trade.realizedR == null || trade.realizedR.isFinite()) { "Realized R must be finite" }
+        require(trade.executionScore == null || trade.executionScore in 1..5) { "Execution score must be from 1 to 5" }
         val signed = if (trade.result == "win") kotlin.math.abs(trade.pnl) else -kotlin.math.abs(trade.pnl)
         return trade.copy(
             pnl = signed,
             symbol = trade.symbol.trim(),
             notes = trade.notes.trim(),
-            entryTime = trade.entryTime.trim()
+            entryTime = trade.entryTime.trim(),
+            setup = trade.setup.trim(),
+            session = trade.session.trim(),
+            emotion = trade.emotion.trim(),
+            mistakes = trade.mistakes.split('|').map(String::trim).filter(String::isNotBlank).distinct().joinToString("|")
         )
+    }
+}
+
+object AttachmentValidator {
+    fun validate(attachment: AttachmentEntity): AttachmentEntity {
+        require(attachment.id.isNotBlank()) { "Attachment ID is required" }
+        require(attachment.tradeId.isNotBlank()) { "Attachment trade ID is required" }
+        require(attachment.kind in setOf("before", "after", "other")) { "Invalid attachment kind" }
+        require(attachment.fileName.isNotBlank() && attachment.fileName.length <= 160) { "Attachment file name is invalid" }
+        require(attachment.mimeType in setOf("image/jpeg", "image/png", "image/webp")) { "Unsupported image type" }
+        require(attachment.relativePath.matches(Regex("[A-Za-z0-9-]+/[A-Za-z0-9-]+\\.(?:jpg|png|webp)"))) { "Unsafe attachment path" }
+        require(attachment.caption.length <= 200) { "Attachment caption is longer than 200 characters" }
+        require(attachment.position >= 0) { "Attachment position is invalid" }
+        require(attachment.sha256.matches(Regex("[a-fA-F0-9]{64}"))) { "Attachment checksum is invalid" }
+        require(attachment.sizeBytes in 1..20_000_000) { "Attachment must be between 1 byte and 20 MB" }
+        return attachment.copy(caption = attachment.caption.trim(), sha256 = attachment.sha256.lowercase())
     }
 }
 
@@ -54,8 +81,8 @@ object BackupCodec {
     fun exportJson(trades: List<TradeEntity>, settings: SettingsEntity, appVersion: String): String {
         val root = JSONObject()
             .put("app", APP_ID)
-            .put("version", 1)
-            .put("schemaVersion", 1)
+            .put("version", 2)
+            .put("schemaVersion", 2)
             .put("appVersion", appVersion)
             .put("exportedAt", Instant.now().toString())
             .put("settings", settingsToJson(settings))
@@ -91,7 +118,7 @@ object BackupCodec {
     }
 
     fun exportCsv(trades: List<TradeEntity>): String = buildString {
-        append("id,date,entryTime,result,pnl,symbol,notes\r\n")
+        append("id,date,entryTime,result,pnl,symbol,setup,session,emotion,mistakes,plannedR,realizedR,executionScore,reviewed,notes\r\n")
         trades.sortedWith(compareBy<TradeEntity> { it.timestamp }.thenBy { it.id }).forEach { trade ->
             append(listOf(
                 trade.id,
@@ -100,6 +127,14 @@ object BackupCodec {
                 trade.result,
                 trade.pnl.toString(),
                 trade.symbol,
+                trade.setup,
+                trade.session,
+                trade.emotion,
+                trade.mistakes,
+                trade.plannedR?.toString().orEmpty(),
+                trade.realizedR?.toString().orEmpty(),
+                trade.executionScore?.toString().orEmpty(),
+                trade.reviewed.toString(),
                 trade.notes
             ).joinToString(",") { csvEscape(it) })
             append("\r\n")
@@ -120,6 +155,17 @@ object BackupCodec {
                 symbol = json.optString("symbol", ""),
                 notes = json.optString("notes", ""),
                 entryTime = json.optString("entryTime", json.optString("entry_time", "")),
+                setup = json.optString("setup", ""),
+                session = json.optString("session", ""),
+                emotion = json.optString("emotion", ""),
+                mistakes = when (val value = json.opt("mistakes")) {
+                    is JSONArray -> (0 until value.length()).joinToString("|") { value.optString(it) }
+                    else -> json.optString("mistakes", "")
+                },
+                plannedR = optionalNumber(json, "plannedR"),
+                realizedR = optionalNumber(json, "realizedR"),
+                executionScore = optionalInteger(json, "executionScore"),
+                reviewed = json.optBoolean("reviewed", false),
                 createdAt = json.optLong("createdAt", json.optLong("created_at", timestamp.takeIf { it > 0 } ?: now)),
                 updatedAt = json.optLong("updatedAt", json.optLong("updated_at", now))
             )
@@ -154,6 +200,11 @@ object BackupCodec {
         return json.getDouble(key)
     }
 
+    private fun optionalInteger(json: JSONObject, key: String): Int? {
+        if (!json.has(key) || json.isNull(key) || json.optString(key).isBlank()) return null
+        return json.getInt(key)
+    }
+
     fun tradeToJson(trade: TradeEntity): JSONObject = JSONObject()
         .put("id", trade.id)
         .put("date", trade.date)
@@ -163,6 +214,43 @@ object BackupCodec {
         .put("symbol", trade.symbol)
         .put("notes", trade.notes)
         .put("entryTime", trade.entryTime)
+        .put("setup", trade.setup)
+        .put("session", trade.session)
+        .put("emotion", trade.emotion)
+        .put("mistakes", JSONArray(trade.mistakes.split('|').filter(String::isNotBlank)))
+        .put("plannedR", trade.plannedR ?: JSONObject.NULL)
+        .put("realizedR", trade.realizedR ?: JSONObject.NULL)
+        .put("executionScore", trade.executionScore ?: JSONObject.NULL)
+        .put("reviewed", trade.reviewed)
+
+    fun attachmentToJson(attachment: AttachmentEntity): JSONObject = JSONObject()
+        .put("id", attachment.id)
+        .put("tradeId", attachment.tradeId)
+        .put("kind", attachment.kind)
+        .put("fileName", attachment.fileName)
+        .put("mimeType", attachment.mimeType)
+        .put("relativePath", attachment.relativePath)
+        .put("caption", attachment.caption)
+        .put("position", attachment.position)
+        .put("sha256", attachment.sha256)
+        .put("sizeBytes", attachment.sizeBytes)
+        .put("createdAt", attachment.createdAt)
+
+    fun attachmentFromJson(json: JSONObject): AttachmentEntity = AttachmentValidator.validate(
+        AttachmentEntity(
+            id = json.getString("id"),
+            tradeId = json.getString("tradeId"),
+            kind = json.optString("kind", "other"),
+            fileName = json.optString("fileName", "chart"),
+            mimeType = json.getString("mimeType"),
+            relativePath = json.getString("relativePath"),
+            caption = json.optString("caption", ""),
+            position = json.optInt("position", 0),
+            sha256 = json.getString("sha256"),
+            sizeBytes = json.getLong("sizeBytes"),
+            createdAt = json.optLong("createdAt", System.currentTimeMillis())
+        )
+    )
 
     fun settingsToJson(settings: SettingsEntity): JSONObject = JSONObject()
         .put("theme", settings.theme)
