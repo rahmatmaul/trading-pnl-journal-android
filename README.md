@@ -23,6 +23,12 @@
   <a href="#build-dari-source"><strong>Build source</strong></a>
 </p>
 
+## Tampilan V2
+
+![Trading PnL Journal 2.0 — Journal, Quick Log, dan Trade Story](docs/showcase-v2.png)
+
+<p align="center"><sub>Product mockup V2 — tampilan pada perangkat dapat sedikit berbeda mengikuti ukuran layar dan tema Android.</sub></p>
+
 ## Apa yang baru di V2.0?
 
 V2 mengubah jurnal sederhana menjadi **trading review system** tanpa membuat
