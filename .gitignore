@@ -6,3 +6,4 @@ local.properties
 *.apk
 *.zip
 captures/
+release/
