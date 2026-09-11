@@ -4,14 +4,14 @@
 
 <p align="center">
   <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml"><img alt="Android CI" src="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml/badge.svg"></a>
+  <img alt="Version 2.0" src="https://img.shields.io/badge/version-2.0.0-087BFF">
   <img alt="Android 8+" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
-  <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-Native%20Shell-7F52FF?logo=kotlin&logoColor=white">
   <img alt="Storage" src="https://img.shields.io/badge/Storage-Room%20%2B%20SQLite-4479A1?logo=sqlite&logoColor=white">
-  <img alt="Offline" src="https://img.shields.io/badge/Internet%20permission-none-86B6FF">
+  <img alt="Offline" src="https://img.shields.io/badge/Internet%20permission-none-111116">
 </p>
 
 <p align="center">
-  Jurnal trading Android yang sederhana, cepat, dan benar-benar offline.<br>
+  Jurnal trading Android yang cepat, visual, dan benar-benar offline.<br>
   Tidak ada akun, server, iklan, tracker, atau database cloud.
 </p>
 
@@ -23,154 +23,153 @@
   <a href="#build-dari-source"><strong>Build source</strong></a>
 </p>
 
-## Kenapa aplikasi ini ada?
+## Apa yang baru di V2.0?
 
-Banyak jurnal trading berbasis web menyimpan data penting di `localStorage`.
-Jika browser membersihkan storage, berjalan dalam mode terbatas, atau halaman
-tidak lagi tersedia, catatan trade berisiko hilang.
+V2 mengubah jurnal sederhana menjadi **trading review system** tanpa membuat
+proses mencatat jadi berat.
 
-Trading PnL Journal memindahkan sumber data utama ke **Room + SQLite**. Tombol
-**Save Trade** baru dinyatakan berhasil setelah data benar-benar ditulis ke
-database lokal Android.
+- UI baru bergaya Apple: glass surface, tipografi besar, warna yang terkontrol,
+  dan floating navigation.
+- **Quick Log** tetap cukup dengan tanggal, simbol, Win/Loss, dan PnL.
+- **Trade Story** dapat dilengkapi belakangan dengan setup, session, emotion,
+  planned/realized R, execution score, mistake tags, serta lesson.
+- Upload hingga 6 chart screenshot sekaligus sebagai **Before / thesis** atau
+  **After / result**.
+- Insight setup dan session, average R, consistency, serta progress review.
+- Backup `.tpjbackup` membawa trade, settings, metadata, dan semua gambar.
+- Migrasi Room `1 → 2` eksplisit; tidak ada destructive fallback.
 
-## Tampilan
+> Screenshot di folder `docs/screenshots` adalah arsip tampilan V1. Screenshot
+> V2 akan diperbarui dari perangkat Android agar dokumentasi tidak menampilkan
+> hasil render palsu.
 
-| Dashboard | Calendar |
-| --- | --- |
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Calendar](docs/screenshots/calendar.png) |
+## Prinsip data
 
-| Add trade | Statistics |
-| --- | --- |
-| ![Add trade](docs/screenshots/add-trade.png) | ![Statistics](docs/screenshots/statistics.png) |
+Sumber kebenaran jurnal adalah **Room + SQLite**, bukan `localStorage`. Tombol
+**Save trade** baru menampilkan sukses setelah transaksi database selesai.
+
+Data internal bertahan ketika aplikasi ditutup, dihapus dari Recents,
+di-force-stop, perangkat reboot, serta ketika APK yang ditandatangani dengan key
+yang sama dipasang sebagai update. Android tetap menghapus private app data saat
+uninstall, sehingga portable backup sangat dianjurkan.
 
 ## Fitur
 
-- Dashboard PnL, win rate, average, best/worst trade, dan recent trades.
-- Kalender bulanan dan ringkasan performa per hari.
-- Tambah, ubah, hapus, dan duplikasi trade.
-- Filter berdasarkan periode, hasil, PnL, simbol, dan urutan waktu.
-- Grafik cumulative PnL serta statistik harian, mingguan, dan bulanan.
-- Theme light, dark, atau mengikuti sistem.
-- Pengaturan balance, profit target, max drawdown, dan daily loss limit.
-- Full backup JSON, export CSV, serta import Merge atau Replace.
-- Recovery backup otomatis ke folder yang dipilih pengguna.
-- Berjalan dalam airplane mode dan tidak memiliki permission `INTERNET`.
+- Journal dashboard, equity curve, calendar, daily summary, dan trade history.
+- CRUD trade lengkap serta duplicate trade beserta gambarnya.
+- Filter periode, result, dan symbol.
+- Trade Story dengan dua galeri chart dan progressive review form.
+- Insight performa berdasarkan setup/session dan periode.
+- Theme light, dark, atau mengikuti Android.
+- Starting balance, profit target, max drawdown, dan daily loss warning.
+- Full package export/import dengan mode Merge atau Replace.
+- JSON V1/V2 kompatibel dan CSV untuk spreadsheet.
+- Automatic recovery package ke folder pilihan pengguna.
+- Airplane-mode ready tanpa permission `INTERNET`.
 
 ## Arsitektur
 
 ```mermaid
 flowchart LR
-    UI[Bundled HTML/CSS/JS UI] -->|AndroidJournal bridge| K[Kotlin native shell]
+    UI[Bundled HTML/CSS/JS] -->|AndroidJournal bridge| K[Kotlin shell]
     K --> R[JournalRepository]
     R --> ROOM[Room]
     ROOM --> SQL[(SQLite)]
-    R --> SAF[Android Storage Access Framework]
-    SAF --> B[JSON / CSV / recovery backups]
+    K --> IMG[Private image files]
+    R --> SAF[Storage Access Framework]
+    IMG --> PKG[.tpjbackup ZIP]
+    SQL --> PKG
+    SAF --> PKG
 ```
 
-UI lama tetap dipertahankan sebagai asset lokal di dalam APK. WebView hanya
-diizinkan membuka origin asset internal; network load diblokir, DOM storage
-dimatikan, dan `localStorage` tidak digunakan untuk data jurnal.
+WebView hanya memuat asset lokal dari `appassets.androidplatform.net`. Request
+di luar origin lokal diblokir, DOM storage dimatikan, dan manifest tidak meminta
+akses internet. Chart image disimpan di private app storage; metadata dan SHA-256
+checksum-nya disimpan di Room.
 
-## Keamanan data
+## Backup dan restore
 
-Data internal bertahan saat aplikasi ditutup, dihapus dari Recents, di-force
-stop, perangkat restart, dan APK baru dipasang di atas versi lama dengan
-application ID serta signing key yang sama.
+### Complete package — direkomendasikan
 
-Android menghapus data privat aplikasi ketika aplikasi di-uninstall. Karena
-itu, setelah instalasi buka:
+File `.tpjbackup` adalah ZIP tervalidasi yang berisi:
 
-**Settings → Recovery backup folder → Choose folder**
+- `journal.json` untuk trade, settings, dan metadata attachment;
+- file chart JPEG, PNG, atau WebP;
+- ukuran serta SHA-256 checksum untuk mendeteksi file rusak.
 
-Pilih folder seperti `Documents/TradingJournal`. Sesudah perubahan database
-berhasil, aplikasi membuat backup recovery terbaru dan menyimpan hingga lima
-snapshot bertanggal.
+**Merge** hanya memasukkan ID trade yang belum ada beserta gambarnya. **Replace**
+memvalidasi paket terlebih dahulu lalu mengganti jurnal dalam satu transaksi.
+Jalur ZIP diperiksa untuk mencegah path traversal, ukuran file dibatasi, dan file
+sementara dibersihkan bila import gagal.
+
+### JSON dan CSV
+
+JSON tetap tersedia untuk kompatibilitas backup jurnal V1 dan pertukaran data
+tanpa gambar. CSV ditujukan untuk spreadsheet dan kini memuat metadata review V2.
+
+### Automatic recovery
+
+Buka **Settings → Automatic recovery → Choose backup folder** lalu pilih folder
+melalui Android Storage Access Framework. Tidak ada broad storage permission.
+Setelah persistent change berhasil, aplikasi memperbarui recovery package dan
+menyimpan hingga lima snapshot bertanggal.
 
 ## Cara install
 
-1. Download `TradingPnLJournal-v1.0.0.apk` dari halaman
-   [Releases](https://github.com/rahmatmaul/trading-pnl-journal-android/releases).
-2. Buka file APK dari File Manager Android.
-3. Jika diminta, izinkan **Install unknown apps** untuk File Manager tersebut.
-4. Tekan **Install**, lalu buka aplikasinya.
-5. Pilih recovery backup folder sebelum mulai mencatat trade penting.
+1. Download `TradingPnLJournal-v2.0.0.apk` dari
+   [GitHub Releases](https://github.com/rahmatmaul/trading-pnl-journal-android/releases).
+2. Buka APK dari File Manager Android.
+3. Jika Android meminta izin, aktifkan **Install unknown apps** hanya untuk File
+   Manager yang digunakan.
+4. Tekan **Install**, buka aplikasi, lalu pilih automatic recovery folder.
 
-Untuk update, install APK baru di atas versi lama. Jangan uninstall aplikasi
-sebelum membuat full backup JSON.
+Untuk update V1 ke V2, pasang APK V2 langsung di atas V1. **Jangan uninstall V1**.
+Migrasi Room mempertahankan trade lama dan memberi nilai default pada field V2.
+Tetap buat JSON backup sebelum update sebagai langkah berjaga-jaga.
 
 ## Build dari source
 
-### Prasyarat
+Prasyarat: JDK 17/21, Android SDK Platform 35, dan Build Tools 35+.
 
-- JDK 17 atau 21
-- Android SDK Platform 35
-- Android Build Tools 35+
-
-### Windows
+Windows:
 
 ```powershell
 .\gradlew.bat testDebugUnitTest lintDebug assembleDebug --no-daemon
 ```
 
-### Linux/macOS
+Linux/macOS:
 
 ```bash
 ./gradlew testDebugUnitTest lintDebug assembleDebug --no-daemon
 ```
 
-APK debug akan tersedia di:
-
-```text
-app/build/outputs/apk/debug/app-debug.apk
-```
+APK debug tersedia di `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Pengujian
 
-Suite JVM/Robolectric mencakup:
+Suite JVM/Robolectric mencakup 14 test untuk CRUD, duplicate, reopen persistence,
+settings, sign normalization, JSON legacy/V2, CSV escaping, malformed backup,
+duplicate merge, atomic replace, attachment cascade, package checksum round-trip,
+dan migrasi database V1→V2 tanpa kehilangan trade.
 
-- add, update, delete, dan duplicate trade;
-- persistensi setelah database ditutup dan dibuka kembali;
-- persistensi settings;
-- JSON export/import dan CSV escaping;
-- Merge, Replace, dan duplicate ID behavior;
-- penolakan backup malformed;
-- kompatibilitas timestamp lama;
-- normalisasi PnL positif untuk Win dan negatif untuk Loss.
+Jalankan hanya test:
 
-Build rilis v1.0.0 diverifikasi dengan **10/10 test lulus**, Android lint tanpa
-error, JavaScript syntax valid, serta pemeriksaan APK tanpa permission internet.
-
-## Format backup
-
-Importer menerima format journal version 1:
-
-```json
-{
-  "app": "trading-pnl-journal",
-  "version": 1,
-  "exportedAt": "2026-09-11T00:00:00Z",
-  "settings": {},
-  "trades": []
-}
+```powershell
+.\gradlew.bat testDebugUnitTest --no-daemon
 ```
 
-Semua record divalidasi sebelum import. **Merge** mempertahankan data saat ini
-dan melewati ID duplikat. **Replace** memvalidasi seluruh file terlebih dahulu,
-kemudian mengganti data dalam satu transaksi database.
-
-## Privasi
+## Privasi dan keamanan
 
 - Tidak ada analytics, telemetry, iklan, login, atau crash reporting remote.
-- Tidak ada permission penyimpanan luas.
-- Akses backup memakai folder/file picker resmi Android.
-- Database dan UI dapat digunakan sepenuhnya tanpa koneksi internet.
+- Tidak ada permission penyimpanan luas maupun permission internet.
+- Semua data sensitif tetap berada di perangkat dan folder backup yang dipilih.
+- Import divalidasi sebelum data aktif diubah.
 
 ## Kontribusi
 
 Bug report dan ide fitur dipersilakan. Baca [CONTRIBUTING.md](CONTRIBUTING.md)
 sebelum membuka pull request. Untuk masalah keamanan, ikuti
-[SECURITY.md](SECURITY.md) dan jangan unggah backup jurnal asli.
+[SECURITY.md](SECURITY.md) dan jangan pernah unggah backup jurnal asli.
 
 ## Lisensi
 
