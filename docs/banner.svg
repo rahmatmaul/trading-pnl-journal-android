@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400" role="img" aria-labelledby="title desc">
+  <title id="title">Trading PnL Journal for Android</title>
+  <desc id="desc">Dark blue banner with a cumulative profit chart and offline Android journal message.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d1117"/><stop offset="1" stop-color="#17243a"/></linearGradient>
+    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86b6ff" stop-opacity=".35"/><stop offset="1" stop-color="#86b6ff" stop-opacity="0"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1280" height="400" rx="28" fill="url(#bg)"/>
+  <g opacity=".14" stroke="#9bb9df"><path d="M0 80h1280M0 160h1280M0 240h1280M0 320h1280"/><path d="M160 0v400M320 0v400M480 0v400M640 0v400M800 0v400M960 0v400M1120 0v400"/></g>
+  <path d="M675 319L743 294L803 305L865 238L927 252L982 170L1045 197L1110 111L1181 132L1248 64V360H675Z" fill="url(#area)"/>
+  <path d="M675 319L743 294L803 305L865 238L927 252L982 170L1045 197L1110 111L1181 132L1248 64" fill="none" stroke="#86b6ff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+  <g transform="translate(74 70)"><rect width="86" height="86" rx="22" fill="#86b6ff"/><path d="M20 61h10V72H20zm17-17h10v28H37zm17 8h10v20H54zm17-29h10v49H71z" fill="#11213a"/><path d="M19 49l19-17 17 8 23-25 7 7-29 31-17-8-13 12z" fill="#fff"/></g>
+  <text x="74" y="205" fill="#f3f7ff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="54" font-weight="800">Trading PnL Journal</text>
+  <text x="76" y="252" fill="#a9bdd8" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="24">Your trades. Your device. Your data.</text>
+  <g transform="translate(76 292)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16" font-weight="700"><rect width="126" height="42" rx="21" fill="#1f3554" stroke="#466990"/><text x="24" y="27" fill="#bcd6fa">100% offline</text><rect x="140" width="164" height="42" rx="21" fill="#1f3554" stroke="#466990"/><text x="164" y="27" fill="#bcd6fa">Room + SQLite</text><rect x="318" width="134" height="42" rx="21" fill="#1f3554" stroke="#466990"/><text x="343" y="27" fill="#bcd6fa">No account</text></g>
+</svg>

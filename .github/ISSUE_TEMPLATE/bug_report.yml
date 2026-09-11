@@ -1,0 +1,36 @@
+name: Bug report
+description: Laporkan perilaku aplikasi yang tidak sesuai.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Jangan lampirkan backup jurnal asli atau data trading pribadi.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Masalah
+      description: Apa yang terjadi dan apa yang seharusnya terjadi?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Cara reproduksi
+      placeholder: "1. Buka ...\n2. Tekan ...\n3. Lihat error ..."
+    validations:
+      required: true
+  - type: input
+    id: android
+    attributes:
+      label: Versi Android dan perangkat
+      placeholder: Android 14, Pixel 7
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versi aplikasi
+      placeholder: 1.0.0
+    validations:
+      required: true

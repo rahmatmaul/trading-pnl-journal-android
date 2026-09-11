@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/rahmatmaul/trading-pnl-journal-android/security/advisories/new
+    about: Laporkan celah keamanan secara privat dan jangan unggah backup asli.

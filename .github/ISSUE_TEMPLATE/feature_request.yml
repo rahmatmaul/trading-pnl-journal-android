@@ -1,0 +1,24 @@
+name: Feature request
+description: Usulkan fitur yang membantu workflow trading journal.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: Masalah trading journal apa yang ingin diselesaikan?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Solusi yang diusulkan
+    validations:
+      required: true
+  - type: checkboxes
+    id: offline
+    attributes:
+      label: Offline dan keamanan data
+      options:
+        - label: Fitur ini tetap dapat bekerja tanpa server atau akun.
