@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="docs/banner.svg" alt="Trading PnL Journal V2.5 for Android" width="100%" />
+  <img src="docs/banner.svg" alt="Trading PnL Journal V3.0 for Android" width="100%" />
 </p>
 
 <p align="center">
   <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml"><img alt="Android CI" src="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml/badge.svg"></a>
-  <img alt="Version 2.5" src="https://img.shields.io/badge/version-2.5.0-087BFF">
+  <img alt="Version 3.0" src="https://img.shields.io/badge/version-3.0.0-087BFF">
   <img alt="Android 8+" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
   <img alt="Storage" src="https://img.shields.io/badge/Storage-Room%20%2B%20SQLite-4479A1?logo=sqlite&logoColor=white">
   <img alt="Offline" src="https://img.shields.io/badge/Internet%20permission-none-111116">
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v2.5.0.apk"><strong>Download APK V2.5</strong></a>
+  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.0.0.apk"><strong>Download APK V3.0</strong></a>
   ·
   <a href="#cara-install"><strong>Cara install</strong></a>
   ·
@@ -25,43 +25,52 @@
   <a href="CHANGELOG.md"><strong>Changelog</strong></a>
 </p>
 
-## Trading PnL Journal V2.5
+## Trading PnL Journal V3.0
 
-V2.5 adalah rilis utama saat ini. Tampilan dibuat lebih matang dengan layered
-gradients, glass surfaces, tipografi yang lebih rapi, app icon adaptive baru,
-dan motion antarlayar yang ringan. Alur pencatatan tetap sengaja singkat:
-catat hasil dalam beberapa detik, lalu lengkapi konteks hanya saat dibutuhkan.
+V3.0 mengubah jurnal menjadi **Trading Performance OS** yang tetap ringan.
+Quick Log mempertahankan pencatatan dalam hitungan detik, sementara Full Story,
+Trade Replay, Adaptive Playbook, Weekly Review, dan analitik lanjutan membantu
+menjelaskan mengapa performa terjadi—bukan hanya menampilkan angka akhirnya.
 
 <p align="center">
-  <img src="docs/screenshots/v2.5/journal.png" alt="V2.5 Journal dashboard" width="23%" />
-  <img src="docs/screenshots/v2.5/quick-log.png" alt="V2.5 Quick Log" width="23%" />
-  <img src="docs/screenshots/v2.5/calendar.png" alt="V2.5 Calendar" width="23%" />
-  <img src="docs/screenshots/v2.5/insights.png" alt="V2.5 Insights" width="23%" />
+  <img src="docs/screenshots/v3.0/journal.png" alt="V3.0 Journal command center" width="19%" />
+  <img src="docs/screenshots/v3.0/full-story.png" alt="V3.0 Full Story" width="19%" />
+  <img src="docs/screenshots/v3.0/insights.png" alt="V3.0 advanced Insights" width="19%" />
+  <img src="docs/screenshots/v3.0/playbook.png" alt="V3.0 Adaptive Playbook" width="19%" />
+  <img src="docs/screenshots/v3.0/trade-replay.png" alt="V3.0 Trade Replay" width="19%" />
 </p>
 
-<p align="center"><sub>Screenshot aktual UI V2.5: Journal, Quick Log, Calendar, dan Insights.</sub></p>
+<p align="center"><sub>Screenshot aktual V3.0: Journal, Full Story, Insights, Adaptive Playbook, dan Trade Replay.</sub></p>
 
-### Yang baru di V2.5
+### Yang baru di V3.0
 
-- Visual baru dengan gradient biru-violet, depth yang terkontrol, glass card,
-  dan hierarchy teks yang lebih jelas.
-- Motion system baru: directional slide antarlayar, spring bottom sheet,
-  feedback tombol, navigation bounce, serta toast yang lebih halus.
-- Animasi kontinu yang berat dihilangkan agar WebView Android tetap mulus.
-- Tipografi seluruh aplikasi diseragamkan dan dioptimalkan untuk layar ponsel.
-- Adaptive app icon baru dengan simbol folded journal dan negative-space path.
-- Dokumentasi screenshot aktual serta APK V2.5 siap unduh langsung dari repo.
+- **Quick Log / Full Story switch**: pilih pencatatan super cepat atau review
+  lengkap tanpa berpindah alur.
+- **Adaptive Playbook**: setup terbentuk otomatis dari data trade, lengkap dengan
+  grade, sample confidence, win rate, dan average PnL.
+- **Trade Replay**: baca ulang thesis, execution, result, lesson, serta chart
+  before/after dalam satu alur visual.
+- **Discipline Score**: mengukur kualitas kebiasaan dari konteks, review,
+  execution score, dan bukti chart—tidak dipengaruhi besar profit.
+- **Weekly Review**: ringkasan mingguan dan satu rekomendasi tindakan berikutnya.
+- **Advanced Insights**: profit factor, expectancy, maximum drawdown, average R,
+  review completion, setup/session edge, dan biaya setiap mistake tag.
+- Command-center dashboard dan visual hierarchy baru dengan motion yang tetap
+  ringan untuk Android WebView.
 
 ## Fitur final
 
 | Area | Kemampuan |
 | --- | --- |
-| Quick Log | Tanggal, simbol, Win/Loss, dan PnL untuk pencatatan cepat |
+| Quick / Full Log | Pencatatan hasil dalam detik atau review lengkap dalam alur yang sama |
 | Trade Story | Setup, session, emotion, planned/realized R, execution score, mistake tags, lesson, dan review status |
+| Trade Replay | Alur thesis, execution, result, lesson, serta before/after evidence |
+| Adaptive Playbook | Setup grade, sample confidence, coverage, win rate, dan average PnL |
 | Chart evidence | Hingga 6 screenshot per trade sebagai Before/thesis atau After/result |
-| Journal | Net performance, current balance, win rate, average trade, recent trades, review queue, dan equity curve |
+| Journal | Net performance, discipline score, expectancy, profit factor, streak, recent trades, dan review queue |
 | Calendar | Ringkasan harian, jumlah trade, win rate, dan net PnL bulanan |
-| Insights | Average R, consistency, review completion, setup edge, dan session edge |
+| Insights | Profit factor, expectancy, max drawdown, Average R, mistake cost, consistency, setup edge, dan session edge |
+| Weekly Review | Debrief fokus dan next best action berdasarkan data minggu berjalan |
 | Trade management | Add, edit, delete, duplicate, detail, filter periode/result/symbol, dan sorting |
 | Risk settings | Starting balance, profit target, max drawdown, dan daily loss warning |
 | Personalization | Light, dark, atau mengikuti tema Android |
@@ -120,7 +129,7 @@ melalui Android Storage Access Framework. Aplikasi menyimpan hingga lima snapsho
 
 ## Cara install
 
-1. Download [`TradingPnLJournal-v2.5.0.apk`](https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v2.5.0.apk).
+1. Download [`TradingPnLJournal-v3.0.0.apk`](https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.0.0.apk).
 2. Buka file melalui File Manager di Android.
 3. Jika diminta, aktifkan **Install unknown apps** hanya untuk File Manager yang
    digunakan.
@@ -155,6 +164,7 @@ menggunakan system sans-serif sebagai fallback bila asset lokal tidak tersedia.
 
 | Versi | Fokus update |
 | --- | --- |
+| **V3.0** | Trading Performance OS, Full Story, Trade Replay, Adaptive Playbook, discipline score, dan advanced Insights |
 | **V2.5** | Visual polish, typography, adaptive icon, dan motion yang lebih mulus |
 | **V2.0** | Quick Log, Trade Story, chart evidence, Insights, dan `.tpjbackup` |
 | **V1.0** | Fondasi offline, Room/SQLite, CRUD, JSON/CSV, calendar, dan stats |
@@ -163,7 +173,7 @@ Rincian setiap rilis tersedia di [CHANGELOG.md](CHANGELOG.md).
 
 ## Pengujian
 
-Suite JVM/Robolectric mencakup 14 test untuk CRUD, duplicate, reopen persistence,
+Suite JVM/Robolectric mencakup 15 test untuk CRUD, duplicate, reopen persistence,
 settings, Win/Loss sign normalization, JSON legacy/V2, CSV escaping, malformed
 backup, duplicate merge, atomic replace, attachment cascade, package checksum
 round-trip, dan migrasi database V1→V2 tanpa kehilangan trade.

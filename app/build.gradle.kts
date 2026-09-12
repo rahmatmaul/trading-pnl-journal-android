@@ -12,8 +12,8 @@ android {
         applicationId = "com.tradingpnl.journal"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "2.5.0"
+        versionCode = 4
+        versionName = "3.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

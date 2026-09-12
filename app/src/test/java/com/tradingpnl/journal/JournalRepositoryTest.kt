@@ -243,6 +243,17 @@ class JournalRepositoryTest {
         repository = JournalRepository(database)
     }
 
+    @Test
+    fun bundledV3UiUsesNativeStorageAndHasNoBrowserStorageWarning() {
+        val html = context.assets.open("index.html").bufferedReader().use { it.readText() }
+        assertTrue(html.contains("Trading PnL Journal 3.0"))
+        assertTrue(html.lowercase().contains("adaptive playbook"))
+        assertTrue(html.contains("Trade Replay"))
+        assertTrue(html.contains("AndroidJournal"))
+        assertFalse(html.contains("localStorage"))
+        assertFalse(html.contains("Browser storage is unavailable"))
+    }
+
     private fun trade(id: String, result: String, pnl: Double): TradeEntity {
         val now = 1_789_000_000_000L
         return TradeEntity(id, "2026-09-10", now, result, pnl, "EURUSD", "", "09:30", now, now)

@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0] - 2026-09-12
+
+### Added
+
+- Quick Log and Full Story modes in one low-friction capture flow.
+- Adaptive Playbook generated from setup performance, sample size, and average PnL.
+- Trade Replay timeline combining thesis, execution, result, lesson, and chart evidence.
+- Discipline Score based on review habits, context quality, execution scoring, and evidence.
+- Weekly Review with a focused performance summary and next-best action.
+- Profit factor, expectancy, maximum drawdown, streak, and mistake-cost analytics.
+- Five current V3.0 product screenshots and a directly downloadable V3.0 APK.
+
+### Changed
+
+- Rebuilt the Journal dashboard as a trading command center while preserving fast capture.
+- Expanded Insights around decision quality rather than outcome alone.
+- Refined information hierarchy, depth, cards, and progressive-disclosure motion.
+- Updated the in-app identity to Trading Performance OS V3.0.
+
+### Data compatibility
+
+- V3.0 keeps the existing Room schema and backup format, so V1, V2, and V2.5 data remain compatible.
+- No destructive database migration or internet permission was introduced.
+
 ## [2.5.0] - 2026-09-12
 
 ### Added
