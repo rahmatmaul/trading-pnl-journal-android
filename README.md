@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml"><img alt="Android CI" src="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml/badge.svg"></a>
-  <img alt="Version 3.0.1" src="https://img.shields.io/badge/version-3.0.1-087BFF">
+  <img alt="Version 3.0.2" src="https://img.shields.io/badge/version-3.0.2-087BFF">
   <img alt="Android 8+" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
   <img alt="Storage" src="https://img.shields.io/badge/Storage-Room%20%2B%20SQLite-4479A1?logo=sqlite&logoColor=white">
   <img alt="Offline" src="https://img.shields.io/badge/Internet%20permission-none-111116">
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.0.1.apk"><strong>Download APK V3.0.1</strong></a>
+  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.0.2.apk"><strong>Download APK V3.0.2</strong></a>
   ·
   <a href="#cara-install"><strong>Cara install</strong></a>
   ·
@@ -27,7 +27,7 @@
 
 ## Trading PnL Journal V3.0
 
-<p align="center"><img src="docs/app-icon-v3.svg" alt="Trading PnL Journal V3 icon" width="128" /></p>
+<p align="center"><img src="docs/app-icon-v25-master.png" alt="Trading PnL Journal folded journal icon" width="128" /></p>
 
 V3.0 mengubah jurnal menjadi **Trading Performance OS** yang tetap ringan.
 Quick Log mempertahankan pencatatan dalam hitungan detik, sementara Full Story,
@@ -131,7 +131,7 @@ melalui Android Storage Access Framework. Aplikasi menyimpan hingga lima snapsho
 
 ## Cara install
 
-1. Download [`TradingPnLJournal-v3.0.1.apk`](https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.0.1.apk).
+1. Download [`TradingPnLJournal-v3.0.2.apk`](https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.0.2.apk).
 2. Buka file melalui File Manager di Android.
 3. Jika diminta, aktifkan **Install unknown apps** hanya untuk File Manager yang
    digunakan.

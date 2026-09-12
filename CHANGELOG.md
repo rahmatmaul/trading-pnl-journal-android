@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.2] - 2026-09-12
+
+### Changed
+
+- Restored the original folded-journal V2.5 artwork selected by the maintainer.
+- Kept the versioned launcher component so the restored icon is refreshed
+  correctly when V3.0.2 is installed over an older build.
+
 ## [3.0.1] - 2026-09-12
 
 ### Fixed
