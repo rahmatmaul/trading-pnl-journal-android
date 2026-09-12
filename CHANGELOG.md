@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.1.1] - 2026-09-12
+
+### Fixed
+
+- Added an Android-specific rendering path that avoids live `backdrop-filter`
+  rasterization while preserving the layered glass appearance.
+- Removed simultaneous stagger animation on Android and reduced navigation motion
+  from roughly 488 ms to roughly 327 ms.
+- Prevented shadows, icon filters, and decorative score animation from competing
+  with page transitions.
+- Limited `will-change` promotion to the short period while a transition is active.
+
+### Data compatibility
+
+- Presentation-only patch. Room, SQLite, backup formats, package name, and launcher
+  identity are unchanged.
+
 ## [3.1.0] - 2026-09-12
 
 ### Added
