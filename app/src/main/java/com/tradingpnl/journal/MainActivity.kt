@@ -27,7 +27,7 @@ import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import java.util.UUID
 
-class MainActivity : ComponentActivity() {
+open class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
     private lateinit var repository: JournalRepository
     private lateinit var attachmentStore: AttachmentStore

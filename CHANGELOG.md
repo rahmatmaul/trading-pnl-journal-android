@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.1] - 2026-09-12
+
+### Fixed
+
+- Replaced the launcher icon with a dedicated V3 adaptive icon resource.
+- Added Android 13+ monochrome icon support for themed launchers.
+- Moved the launcher intent to a versioned `LauncherV3Activity` component so launchers refresh
+  cached icons after updating while the package name and journal database stay unchanged.
+
 ## [3.0.0] - 2026-09-12
 
 ### Added
