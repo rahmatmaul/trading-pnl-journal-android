@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml"><img alt="Android CI" src="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml/badge.svg"></a>
-  <img alt="Version 2.0" src="https://img.shields.io/badge/version-2.0.0-087BFF">
+  <img alt="Version 2.5" src="https://img.shields.io/badge/version-2.5.0-087BFF">
   <img alt="Android 8+" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
   <img alt="Storage" src="https://img.shields.io/badge/Storage-Room%20%2B%20SQLite-4479A1?logo=sqlite&logoColor=white">
   <img alt="Offline" src="https://img.shields.io/badge/Internet%20permission-none-111116">
@@ -28,6 +28,17 @@
 ![Trading PnL Journal 2.0 — Journal, Quick Log, dan Trade Story](docs/showcase-v2.png)
 
 <p align="center"><sub>Product mockup V2 — tampilan pada perangkat dapat sedikit berbeda mengikuti ukuran layar dan tema Android.</sub></p>
+
+## Identitas visual V2.5
+
+<p align="center">
+  <img src="docs/app-icon-v25-master.png" alt="Trading PnL Journal V2.5 app icon" width="180" />
+</p>
+
+V2.5 membawa ikon adaptive baru dengan simbol dua lembar jurnal yang membentuk
+jalur refleksi melalui negative space. Motion antarlayar juga diganti dengan
+directional slide yang lebih ringan, dan build pribadi dapat memakai SF Pro
+Display yang dibundel secara offline.
 
 ## Apa yang baru di V2.0?
 

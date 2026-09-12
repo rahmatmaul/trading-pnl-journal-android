@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.0] - 2026-09-12
+
+### Added
+
+- Original adaptive launcher icon built around a folded-journal symbol and
+  restrained midnight-to-cobalt palette.
+- Locally bundled SF Pro Display typography for private builds.
+
+### Changed
+
+- Replaced heavy page effects with compositor-friendly directional slide motion.
+- Refined button, bottom-sheet, navigation, and toast animation timing.
+- Disabled decorative continuous animation that could stutter in Android WebView.
+
 ## [2.0.0] - 2026-09-11
 
 ### Added
