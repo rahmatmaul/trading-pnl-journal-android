@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.svg" alt="Trading PnL Journal for Android" width="100%" />
+  <img src="docs/banner.svg" alt="Trading PnL Journal V2.5 for Android" width="100%" />
 </p>
 
 <p align="center">
@@ -16,73 +16,67 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/releases/latest"><strong>Download APK terbaru</strong></a>
+  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v2.5.0.apk"><strong>Download APK V2.5</strong></a>
   ·
   <a href="#cara-install"><strong>Cara install</strong></a>
   ·
   <a href="#build-dari-source"><strong>Build source</strong></a>
+  ·
+  <a href="CHANGELOG.md"><strong>Changelog</strong></a>
 </p>
 
-## Tampilan V2
+## Trading PnL Journal V2.5
 
-![Trading PnL Journal 2.0 — Journal, Quick Log, dan Trade Story](docs/showcase-v2.png)
-
-<p align="center"><sub>Product mockup V2 — tampilan pada perangkat dapat sedikit berbeda mengikuti ukuran layar dan tema Android.</sub></p>
-
-## Identitas visual V2.5
+V2.5 adalah rilis utama saat ini. Tampilan dibuat lebih matang dengan layered
+gradients, glass surfaces, tipografi yang lebih rapi, app icon adaptive baru,
+dan motion antarlayar yang ringan. Alur pencatatan tetap sengaja singkat:
+catat hasil dalam beberapa detik, lalu lengkapi konteks hanya saat dibutuhkan.
 
 <p align="center">
-  <img src="docs/app-icon-v25-master.png" alt="Trading PnL Journal V2.5 app icon" width="180" />
+  <img src="docs/screenshots/v2.5/journal.png" alt="V2.5 Journal dashboard" width="23%" />
+  <img src="docs/screenshots/v2.5/quick-log.png" alt="V2.5 Quick Log" width="23%" />
+  <img src="docs/screenshots/v2.5/calendar.png" alt="V2.5 Calendar" width="23%" />
+  <img src="docs/screenshots/v2.5/insights.png" alt="V2.5 Insights" width="23%" />
 </p>
 
-V2.5 membawa ikon adaptive baru dengan simbol dua lembar jurnal yang membentuk
-jalur refleksi melalui negative space. Motion antarlayar juga diganti dengan
-directional slide yang lebih ringan, dan build pribadi dapat memakai SF Pro
-Display yang dibundel secara offline.
+<p align="center"><sub>Screenshot aktual UI V2.5: Journal, Quick Log, Calendar, dan Insights.</sub></p>
 
-## Apa yang baru di V2.0?
+### Yang baru di V2.5
 
-V2 mengubah jurnal sederhana menjadi **trading review system** tanpa membuat
-proses mencatat jadi berat.
+- Visual baru dengan gradient biru-violet, depth yang terkontrol, glass card,
+  dan hierarchy teks yang lebih jelas.
+- Motion system baru: directional slide antarlayar, spring bottom sheet,
+  feedback tombol, navigation bounce, serta toast yang lebih halus.
+- Animasi kontinu yang berat dihilangkan agar WebView Android tetap mulus.
+- Tipografi seluruh aplikasi diseragamkan dan dioptimalkan untuk layar ponsel.
+- Adaptive app icon baru dengan simbol folded journal dan negative-space path.
+- Dokumentasi screenshot aktual serta APK V2.5 siap unduh langsung dari repo.
 
-- UI baru bergaya Apple: glass surface, tipografi besar, warna yang terkontrol,
-  dan floating navigation.
-- **Quick Log** tetap cukup dengan tanggal, simbol, Win/Loss, dan PnL.
-- **Trade Story** dapat dilengkapi belakangan dengan setup, session, emotion,
-  planned/realized R, execution score, mistake tags, serta lesson.
-- Upload hingga 6 chart screenshot sekaligus sebagai **Before / thesis** atau
-  **After / result**.
-- Insight setup dan session, average R, consistency, serta progress review.
-- Backup `.tpjbackup` membawa trade, settings, metadata, dan semua gambar.
-- Migrasi Room `1 → 2` eksplisit; tidak ada destructive fallback.
+## Fitur final
 
-> Screenshot di folder `docs/screenshots` adalah arsip tampilan V1. Screenshot
-> V2 akan diperbarui dari perangkat Android agar dokumentasi tidak menampilkan
-> hasil render palsu.
+| Area | Kemampuan |
+| --- | --- |
+| Quick Log | Tanggal, simbol, Win/Loss, dan PnL untuk pencatatan cepat |
+| Trade Story | Setup, session, emotion, planned/realized R, execution score, mistake tags, lesson, dan review status |
+| Chart evidence | Hingga 6 screenshot per trade sebagai Before/thesis atau After/result |
+| Journal | Net performance, current balance, win rate, average trade, recent trades, review queue, dan equity curve |
+| Calendar | Ringkasan harian, jumlah trade, win rate, dan net PnL bulanan |
+| Insights | Average R, consistency, review completion, setup edge, dan session edge |
+| Trade management | Add, edit, delete, duplicate, detail, filter periode/result/symbol, dan sorting |
+| Risk settings | Starting balance, profit target, max drawdown, dan daily loss warning |
+| Personalization | Light, dark, atau mengikuti tema Android |
+| Data portability | Full package, JSON, CSV, Merge import, Replace import, dan automatic recovery |
+| Offline | Asset UI lokal, Room/SQLite, tanpa permission internet |
 
-## Prinsip data
+## Data yang tidak hilang saat aplikasi ditutup
 
 Sumber kebenaran jurnal adalah **Room + SQLite**, bukan `localStorage`. Tombol
 **Save trade** baru menampilkan sukses setelah transaksi database selesai.
 
-Data internal bertahan ketika aplikasi ditutup, dihapus dari Recents,
-di-force-stop, perangkat reboot, serta ketika APK yang ditandatangani dengan key
-yang sama dipasang sebagai update. Android tetap menghapus private app data saat
-uninstall, sehingga portable backup sangat dianjurkan.
-
-## Fitur
-
-- Journal dashboard, equity curve, calendar, daily summary, dan trade history.
-- CRUD trade lengkap serta duplicate trade beserta gambarnya.
-- Filter periode, result, dan symbol.
-- Trade Story dengan dua galeri chart dan progressive review form.
-- Insight performa berdasarkan setup/session dan periode.
-- Theme light, dark, atau mengikuti Android.
-- Starting balance, profit target, max drawdown, dan daily loss warning.
-- Full package export/import dengan mode Merge atau Replace.
-- JSON V1/V2 kompatibel dan CSV untuk spreadsheet.
-- Automatic recovery package ke folder pilihan pengguna.
-- Airplane-mode ready tanpa permission `INTERNET`.
+Data internal bertahan saat berpindah halaman, aplikasi ditutup, dihapus dari
+Recents, di-force-stop, perangkat reboot, dan APK dengan signature yang sama
+dipasang sebagai update. Android tetap menghapus private app data saat uninstall,
+jadi portable backup tetap penting.
 
 ## Arsitektur
 
@@ -92,7 +86,7 @@ flowchart LR
     K --> R[JournalRepository]
     R --> ROOM[Room]
     ROOM --> SQL[(SQLite)]
-    K --> IMG[Private image files]
+    K --> IMG[Private chart images]
     R --> SAF[Storage Access Framework]
     IMG --> PKG[.tpjbackup ZIP]
     SQL --> PKG
@@ -100,68 +94,46 @@ flowchart LR
 ```
 
 WebView hanya memuat asset lokal dari `appassets.androidplatform.net`. Request
-di luar origin lokal diblokir, DOM storage dimatikan, dan manifest tidak meminta
-akses internet. Chart image disimpan di private app storage; metadata dan SHA-256
-checksum-nya disimpan di Room.
+ke origin lain diblokir, DOM storage dimatikan, dan manifest tidak meminta
+permission `INTERNET`. Gambar chart disimpan di private app storage; metadata dan
+SHA-256 checksum disimpan di Room.
 
 ## Backup dan restore
 
-### Complete package — direkomendasikan
+### Full package — direkomendasikan
 
-File `.tpjbackup` adalah ZIP tervalidasi yang berisi:
+File `.tpjbackup` adalah ZIP tervalidasi yang membawa:
 
-- `journal.json` untuk trade, settings, dan metadata attachment;
-- file chart JPEG, PNG, atau WebP;
-- ukuran serta SHA-256 checksum untuk mendeteksi file rusak.
+- `journal.json` berisi trade, settings, dan metadata attachment;
+- chart JPEG, PNG, atau WebP;
+- ukuran file serta SHA-256 checksum untuk mendeteksi kerusakan.
 
-**Merge** hanya memasukkan ID trade yang belum ada beserta gambarnya. **Replace**
-memvalidasi paket terlebih dahulu lalu mengganti jurnal dalam satu transaksi.
-Jalur ZIP diperiksa untuk mencegah path traversal, ukuran file dibatasi, dan file
-sementara dibersihkan bila import gagal.
+**Merge** menambahkan ID trade yang belum ada. **Replace** memvalidasi seluruh
+paket sebelum mengganti jurnal dalam satu transaksi. Jalur ZIP diperiksa untuk
+mencegah path traversal, ukuran file dibatasi, dan file sementara dibersihkan
+jika import gagal.
 
-### JSON dan CSV
-
-JSON tetap tersedia untuk kompatibilitas backup jurnal V1 dan pertukaran data
-tanpa gambar. CSV ditujukan untuk spreadsheet dan kini memuat metadata review V2.
-
-### Automatic recovery
-
-Buka **Settings → Automatic recovery → Choose backup folder** lalu pilih folder
-melalui Android Storage Access Framework. Tidak ada broad storage permission.
-Setelah persistent change berhasil, aplikasi memperbarui recovery package dan
-menyimpan hingga lima snapshot bertanggal.
+JSON tetap tersedia untuk backup lama V1/V2 dan pertukaran tanpa gambar. CSV
+ditujukan untuk spreadsheet dan memuat metadata review. Untuk automatic recovery,
+buka **Settings → Automatic recovery → Choose backup folder** lalu pilih folder
+melalui Android Storage Access Framework. Aplikasi menyimpan hingga lima snapshot.
 
 ## Cara install
 
-1. Download `TradingPnLJournal-v2.0.0.apk` dari
-   [GitHub Releases](https://github.com/rahmatmaul/trading-pnl-journal-android/releases).
-2. Buka APK dari File Manager Android.
-3. Jika Android meminta izin, aktifkan **Install unknown apps** hanya untuk File
-   Manager yang digunakan.
+1. Download [`TradingPnLJournal-v2.5.0.apk`](https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v2.5.0.apk).
+2. Buka file melalui File Manager di Android.
+3. Jika diminta, aktifkan **Install unknown apps** hanya untuk File Manager yang
+   digunakan.
 4. Tekan **Install**, buka aplikasi, lalu pilih automatic recovery folder.
 
-Untuk update V1 ke V2, pasang APK V2 langsung di atas V1. **Jangan uninstall V1**.
-Migrasi Room mempertahankan trade lama dan memberi nilai default pada field V2.
-Tetap buat JSON backup sebelum update sebagai langkah berjaga-jaga.
+Untuk update dari versi lama, pasang APK baru langsung di atas aplikasi lama dan
+**jangan uninstall versi lama terlebih dahulu**. Migrasi Room eksplisit
+mempertahankan trade yang sudah tersimpan. Buat backup sebelum update sebagai
+langkah berjaga-jaga.
 
 ## Build dari source
 
 Prasyarat: JDK 17/21, Android SDK Platform 35, dan Build Tools 35+.
-
-### Font SF Pro pribadi
-
-File font Apple tidak didistribusikan melalui repository ini. Untuk build pribadi
-dengan typography yang sama seperti APK pengembang, letakkan file berikut di
-`font/sf-pro-display/` sebelum build:
-
-- `SFPRODISPLAYREGULAR.OTF`
-- `SFPRODISPLAYMEDIUM.OTF`
-- `SFPRODISPLAYBOLD.OTF`
-- `SFPRODISPLAYLIGHTITALIC.OTF`
-- `SFPRODISPLAYSEMIBOLDITALIC.OTF`
-
-Tanpa file tersebut aplikasi tetap dapat dibangun dan akan memakai system sans-serif.
-Pastikan penggunaan font mengikuti lisensi yang berlaku.
 
 Windows:
 
@@ -175,16 +147,26 @@ Linux/macOS:
 ./gradlew testDebugUnitTest lintDebug assembleDebug --no-daemon
 ```
 
-APK debug tersedia di `app/build/outputs/apk/debug/app-debug.apk`.
+APK debug tersedia di `app/build/outputs/apk/debug/app-debug.apk`. Asset font
+mentah tidak disertakan dalam repository; source tetap dapat dibangun dan akan
+menggunakan system sans-serif sebagai fallback bila asset lokal tidak tersedia.
+
+## Riwayat versi
+
+| Versi | Fokus update |
+| --- | --- |
+| **V2.5** | Visual polish, typography, adaptive icon, dan motion yang lebih mulus |
+| **V2.0** | Quick Log, Trade Story, chart evidence, Insights, dan `.tpjbackup` |
+| **V1.0** | Fondasi offline, Room/SQLite, CRUD, JSON/CSV, calendar, dan stats |
+
+Rincian setiap rilis tersedia di [CHANGELOG.md](CHANGELOG.md).
 
 ## Pengujian
 
 Suite JVM/Robolectric mencakup 14 test untuk CRUD, duplicate, reopen persistence,
-settings, sign normalization, JSON legacy/V2, CSV escaping, malformed backup,
-duplicate merge, atomic replace, attachment cascade, package checksum round-trip,
-dan migrasi database V1→V2 tanpa kehilangan trade.
-
-Jalankan hanya test:
+settings, Win/Loss sign normalization, JSON legacy/V2, CSV escaping, malformed
+backup, duplicate merge, atomic replace, attachment cascade, package checksum
+round-trip, dan migrasi database V1→V2 tanpa kehilangan trade.
 
 ```powershell
 .\gradlew.bat testDebugUnitTest --no-daemon
@@ -192,10 +174,10 @@ Jalankan hanya test:
 
 ## Privasi dan keamanan
 
-- Tidak ada analytics, telemetry, iklan, login, atau crash reporting remote.
-- Tidak ada permission penyimpanan luas maupun permission internet.
-- Semua data sensitif tetap berada di perangkat dan folder backup yang dipilih.
-- Import divalidasi sebelum data aktif diubah.
+- Tidak ada analytics, telemetry, iklan, login, atau remote crash reporting.
+- Tidak ada broad storage permission maupun permission internet.
+- Data jurnal berada di perangkat dan folder backup yang pengguna pilih.
+- Import selalu divalidasi sebelum data aktif diubah.
 
 ## Kontribusi
 

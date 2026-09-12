@@ -136,7 +136,10 @@ if(!window.AndroidJournal&&(location.protocol==='file:'||location.hostname==='12
     {id:'d5',date:iso(new Date(Date.now()-345600000)),timestamp:now-345600000,result:'loss',pnl:-85,symbol:'GBPUSD',setup:'Reversal',session:'London',emotion:'Frustrated',mistakes:['FOMO'],realizedR:-.8,executionScore:2,reviewed:false}
   ];return JSON.stringify({success:true,trades:items,attachments:[],settings:{theme:'light',startingBalance:25000,profitTarget:5000,maxDrawdown:2000,dailyDrawdown:500},backupFolder:null,storage:'Room / SQLite'})}};
 }
+var demoParams=location.search.indexOf('demo=1')>=0?new URLSearchParams(location.search):null;
+if(demoParams){var demoView=demoParams.get('view');if(['journal','calendar','trades','insights','settings','story'].indexOf(demoView)>=0)App.state.view=demoView;if(demoView==='story')App.state.storyId='d1'}
 App.init();
+if(demoParams)setTimeout(function(){if(demoParams.get('theme')==='dark'){DB.settings.theme='dark';theme();App.render()}if(demoParams.get('modal')==='quick')openTradeForm()},60);
 </script>
 </body>
 </html>
