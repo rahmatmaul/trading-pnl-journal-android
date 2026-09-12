@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml"><img alt="Android CI" src="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml/badge.svg"></a>
-  <img alt="Version 3.1.1" src="https://img.shields.io/badge/version-3.1.1-087BFF">
+  <img alt="Version 3.1.2" src="https://img.shields.io/badge/version-3.1.2-087BFF">
   <img alt="Android 8+" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
   <img alt="Storage" src="https://img.shields.io/badge/Storage-Room%20%2B%20SQLite-4479A1?logo=sqlite&logoColor=white">
   <img alt="Offline" src="https://img.shields.io/badge/Internet%20permission-none-111116">
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.1.1.apk"><strong>Download APK V3.1.1</strong></a>
+  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.1.2.apk"><strong>Download APK V3.1.2</strong></a>
   ·
   <a href="#cara-install"><strong>Cara install</strong></a>
   ·
@@ -42,6 +42,9 @@ pilihan agar tetap mulus di Android WebView.
 Patch V3.1.1 memakai jalur render khusus Android: tampilannya tetap seperti kaca,
 tetapi live backdrop blur, multi-card stagger, dan animasi shadow yang berat tidak
 dijalankan di WebView.
+
+V3.1.2 meningkatkan opacity permukaan Android untuk keterbacaan dan mengganti
+gerakan sheet satu layar penuh dengan short lift 26 px yang lebih ringan.
 
 <p align="center">
   <img src="docs/screenshots/v3.1/journal.png" alt="V3.1 Journal with selective glass and directional motion" width="19%" />
@@ -152,7 +155,7 @@ melalui Android Storage Access Framework. Aplikasi menyimpan hingga lima snapsho
 
 ## Cara install
 
-1. Download [`TradingPnLJournal-v3.1.1.apk`](https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.1.1.apk).
+1. Download [`TradingPnLJournal-v3.1.2.apk`](https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.1.2.apk).
 2. Buka file melalui File Manager di Android.
 3. Jika diminta, aktifkan **Install unknown apps** hanya untuk File Manager yang
    digunakan.
@@ -187,6 +190,7 @@ menggunakan system sans-serif sebagai fallback bila asset lokal tidak tersedia.
 
 | Versi | Fokus update |
 | --- | --- |
+| **V3.1.2** | Kaca Android lebih solid, short-lift sheet, dan navigasi satu tahap 210 ms |
 | **V3.1.1** | Android performance path: faux glass, single-layer motion, dan durasi transisi lebih singkat |
 | **V3.1** | Motion Engine baru, directional spring transitions, micro-interactions, dan selective glass blur |
 | **V3.0** | Trading Performance OS, Full Story, Trade Replay, Adaptive Playbook, discipline score, dan advanced Insights |

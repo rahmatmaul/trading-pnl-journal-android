@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.1.2] - 2026-09-12
+
+### Fixed
+
+- Increased Android glass-surface opacity to keep text, controls, and modal forms readable.
+- Replaced the full-height bottom-sheet travel with a short 26 px lift animation.
+- Replaced two-stage Android page transitions with one 210 ms compositor animation.
+- Removed the delayed bottom-navigation icon bounce and rotation on the central add button.
+
+### Data compatibility
+
+- UI-only patch. Room, SQLite, backup formats, package name, and existing journal
+  data remain unchanged.
+
 ## [3.1.1] - 2026-09-12
 
 ### Fixed
