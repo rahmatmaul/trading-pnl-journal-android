@@ -7,3 +7,5 @@ local.properties
 *.zip
 captures/
 release/
+# Apple font files are licensed separately and remain local-only.
+/font/

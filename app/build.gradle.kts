@@ -35,6 +35,11 @@ android {
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { buildConfig = true }
     testOptions { unitTests.isIncludeAndroidResources = true }
+    sourceSets {
+        getByName("main") {
+            assets.srcDir("../font")
+        }
+    }
 }
 
 dependencies {

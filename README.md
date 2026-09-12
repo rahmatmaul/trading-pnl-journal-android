@@ -137,6 +137,21 @@ Tetap buat JSON backup sebelum update sebagai langkah berjaga-jaga.
 
 Prasyarat: JDK 17/21, Android SDK Platform 35, dan Build Tools 35+.
 
+### Font SF Pro pribadi
+
+File font Apple tidak didistribusikan melalui repository ini. Untuk build pribadi
+dengan typography yang sama seperti APK pengembang, letakkan file berikut di
+`font/sf-pro-display/` sebelum build:
+
+- `SFPRODISPLAYREGULAR.OTF`
+- `SFPRODISPLAYMEDIUM.OTF`
+- `SFPRODISPLAYBOLD.OTF`
+- `SFPRODISPLAYLIGHTITALIC.OTF`
+- `SFPRODISPLAYSEMIBOLDITALIC.OTF`
+
+Tanpa file tersebut aplikasi tetap dapat dibangun dan akan memakai system sans-serif.
+Pastikan penggunaan font mengikuti lisensi yang berlaku.
+
 Windows:
 
 ```powershell
