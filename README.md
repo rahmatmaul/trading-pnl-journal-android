@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="docs/banner.svg" alt="Trading PnL Journal V3.0 for Android" width="100%" />
+  <img src="docs/banner.svg" alt="Trading PnL Journal V3.1 for Android" width="100%" />
 </p>
 
 <p align="center">
   <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml"><img alt="Android CI" src="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml/badge.svg"></a>
-  <img alt="Version 3.0.2" src="https://img.shields.io/badge/version-3.0.2-087BFF">
+  <img alt="Version 3.1.0" src="https://img.shields.io/badge/version-3.1.0-087BFF">
   <img alt="Android 8+" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
   <img alt="Storage" src="https://img.shields.io/badge/Storage-Room%20%2B%20SQLite-4479A1?logo=sqlite&logoColor=white">
   <img alt="Offline" src="https://img.shields.io/badge/Internet%20permission-none-111116">
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.0.2.apk"><strong>Download APK V3.0.2</strong></a>
+  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.1.0.apk"><strong>Download APK V3.1.0</strong></a>
   ·
   <a href="#cara-install"><strong>Cara install</strong></a>
   ·
@@ -25,26 +25,43 @@
   <a href="CHANGELOG.md"><strong>Changelog</strong></a>
 </p>
 
-## Trading PnL Journal V3.0
+## Trading PnL Journal V3.1
 
 <p align="center"><img src="docs/app-icon-v25-master.png" alt="Trading PnL Journal folded journal icon" width="128" /></p>
 
-V3.0 mengubah jurnal menjadi **Trading Performance OS** yang tetap ringan.
+V3.1 memoles jurnal menjadi **Trading Performance OS** yang terasa lebih hidup tetapi tetap ringan.
 Quick Log mempertahankan pencatatan dalam hitungan detik, sementara Full Story,
 Trade Replay, Adaptive Playbook, Weekly Review, dan analitik lanjutan membantu
 menjelaskan mengapa performa terjadi—bukan hanya menampilkan angka akhirnya.
 
+Motion Engine V3.1 memakai transisi keluar–masuk yang mengikuti arah navigasi,
+spring settle yang singkat, serta stagger hanya pada elemen penting. Seluruh gerak
+utama memakai `transform` dan `opacity`, sedangkan blur kaca dibatasi ke layer
+pilihan agar tetap mulus di Android WebView.
+
 <p align="center">
-  <img src="docs/screenshots/v3.0/journal.png" alt="V3.0 Journal command center" width="19%" />
+  <img src="docs/screenshots/v3.1/journal.png" alt="V3.1 Journal with selective glass and directional motion" width="19%" />
   <img src="docs/screenshots/v3.0/full-story.png" alt="V3.0 Full Story" width="19%" />
   <img src="docs/screenshots/v3.0/insights.png" alt="V3.0 advanced Insights" width="19%" />
   <img src="docs/screenshots/v3.0/playbook.png" alt="V3.0 Adaptive Playbook" width="19%" />
   <img src="docs/screenshots/v3.0/trade-replay.png" alt="V3.0 Trade Replay" width="19%" />
 </p>
 
-<p align="center"><sub>Screenshot aktual V3.0: Journal, Full Story, Insights, Adaptive Playbook, dan Trade Replay.</sub></p>
+<p align="center"><sub>Screenshot aktual: V3.1 Journal, Full Story, Insights, Adaptive Playbook, dan Trade Replay.</sub></p>
 
-### Yang baru di V3.0
+### Yang baru di V3.1
+
+- **Directional motion**: layar lama keluar lebih dahulu, lalu layar baru masuk
+  dari arah navigasi dengan spring settle yang halus.
+- **Purposeful movement**: hero, signal, card utama, modal, toast, dan bottom nav
+  punya respons gerak singkat tanpa animasi dekoratif yang terus berjalan.
+- **Clearer glass**: permukaan lebih transparan, edge highlight lebih tegas, dan
+  ambient blue/violet membuat efek blur terbaca tanpa tampak abu-abu.
+- **Android-first performance**: blur berat pada backdrop dihapus dan animasi
+  dibatasi ke properti yang dapat dikomposisi GPU.
+- **Reduced motion**: preferensi aksesibilitas Android tetap dihormati.
+
+### Fondasi fitur V3.0
 
 - **Quick Log / Full Story switch**: pilih pencatatan super cepat atau review
   lengkap tanpa berpindah alur.
@@ -131,7 +148,7 @@ melalui Android Storage Access Framework. Aplikasi menyimpan hingga lima snapsho
 
 ## Cara install
 
-1. Download [`TradingPnLJournal-v3.0.2.apk`](https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.0.2.apk).
+1. Download [`TradingPnLJournal-v3.1.0.apk`](https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.1.0.apk).
 2. Buka file melalui File Manager di Android.
 3. Jika diminta, aktifkan **Install unknown apps** hanya untuk File Manager yang
    digunakan.
@@ -166,6 +183,7 @@ menggunakan system sans-serif sebagai fallback bila asset lokal tidak tersedia.
 
 | Versi | Fokus update |
 | --- | --- |
+| **V3.1** | Motion Engine baru, directional spring transitions, micro-interactions, dan selective glass blur |
 | **V3.0** | Trading Performance OS, Full Story, Trade Replay, Adaptive Playbook, discipline score, dan advanced Insights |
 | **V2.5** | Visual polish, typography, adaptive icon, dan motion yang lebih mulus |
 | **V2.0** | Quick Log, Trade Story, chart evidence, Insights, dan `.tpjbackup` |

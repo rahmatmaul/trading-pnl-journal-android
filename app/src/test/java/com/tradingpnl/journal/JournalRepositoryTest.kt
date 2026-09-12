@@ -244,11 +244,12 @@ class JournalRepositoryTest {
     }
 
     @Test
-    fun bundledV3UiUsesNativeStorageAndHasNoBrowserStorageWarning() {
+    fun bundledV31UiUsesNativeStorageAndHasNoBrowserStorageWarning() {
         val html = context.assets.open("index.html").bufferedReader().use { it.readText() }
-        assertTrue(html.contains("Trading PnL Journal 3.0"))
+        assertTrue(html.contains("Trading PnL Journal 3.1.0"))
         assertTrue(html.lowercase().contains("adaptive playbook"))
         assertTrue(html.contains("Trade Replay"))
+        assertTrue(html.contains("Motion & Glass V3.1"))
         assertTrue(html.contains("AndroidJournal"))
         assertFalse(html.contains("localStorage"))
         assertFalse(html.contains("Browser storage is unavailable"))

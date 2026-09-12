@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.1.0] - 2026-09-12
+
+### Added
+
+- Direction-aware exit/enter page transitions with a short spring settle.
+- Lightweight staggered reveals for the most important screen sections.
+- Responsive press, navigation, bottom-sheet, and toast micro-interactions.
+- Stronger glass depth using colored ambient layers, edge highlights, and selective blur.
+
+### Changed
+
+- Rebuilt motion around compositor-only `transform` and `opacity` animation.
+- Reduced expensive full-screen blur and removed continuous decorative animation.
+- Made glass surfaces more transparent and colorful instead of opaque gray.
+- Preserved reduced-motion behavior for users who disable animation at system level.
+
+### Data compatibility
+
+- V3.1 changes presentation and motion only. The Room schema, package name, and
+  backup formats are unchanged, so an in-place update preserves existing journals.
+
 ## [3.0.2] - 2026-09-12
 
 ### Changed
