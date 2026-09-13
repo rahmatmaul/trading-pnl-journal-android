@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.1.3] - 2026-09-13
+
+### Fixed
+
+- Split the Android trade sheet into a static scroll surface and a dedicated
+  compositor motion layer to prevent scroll/layout work during its entrance.
+- Replaced the combined opacity/scale animation with one monotonic GPU transform
+  and a separately faded backdrop.
+- Painted the central add-button response before mounting the trade form.
+- Skipped layout and paint for collapsed Full Story fields in Quick Log mode.
+
+### Data compatibility
+
+- Motion-only patch. Room, SQLite, backup formats, application ID, launcher icon,
+  and existing journal data remain unchanged.
+
 ## [3.1.2] - 2026-09-12
 
 ### Fixed
