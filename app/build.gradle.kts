@@ -12,8 +12,8 @@ android {
         applicationId = "com.tradingpnl.journal"
         minSdk = 26
         targetSdk = 35
-        versionCode = 10
-        versionName = "3.1.3"
+        versionCode = 11
+        versionName = "4.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,6 +50,9 @@ dependencies {
     implementation("androidx.webkit:webkit:1.12.1")
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.1")
 
     kapt("androidx.room:room-compiler:2.6.1")
 

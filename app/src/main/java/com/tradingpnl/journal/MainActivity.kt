@@ -15,9 +15,12 @@ import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import androidx.webkit.WebViewAssetLoader
+import com.google.android.gms.auth.api.identity.AuthorizationResult
+import com.google.android.gms.auth.api.identity.Identity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -25,6 +28,9 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 open class MainActivity : ComponentActivity() {
@@ -32,10 +38,23 @@ open class MainActivity : ComponentActivity() {
     private lateinit var repository: JournalRepository
     private lateinit var attachmentStore: AttachmentStore
     private lateinit var backupManager: BackupManager
+    private lateinit var syncCoordinator: DriveSyncCoordinator
     private var exportKind = "json"
     private var importMode = "merge"
     private var pendingAttachmentTradeId: String? = null
     private var pendingAttachmentKind = "other"
+    private var pendingGoogleAction = "sync"
+
+    private val googleAuthorization = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+        if (result.resultCode != RESULT_OK || result.data == null) {
+            nativeEvent("sync", false, "Google Drive connection was cancelled")
+            return@registerForActivityResult
+        }
+        runCatching {
+            Identity.getAuthorizationClient(this).getAuthorizationResultFromIntent(result.data!!)
+        }.onSuccess(::completeGoogleAuthorization)
+            .onFailure { nativeEvent("sync", false, it.message ?: "Google authorization failed") }
+    }
 
     private val createJson = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) writeManualExport(uri, "json")
@@ -66,6 +85,7 @@ open class MainActivity : ComponentActivity() {
         repository = JournalRepository(JournalDatabase.get(this))
         attachmentStore = AttachmentStore(this, repository)
         backupManager = BackupManager(this, repository, attachmentStore, lifecycleScope, BuildConfig.VERSION_NAME, ::backupEvent)
+        syncCoordinator = DriveSyncCoordinator(repository, attachmentStore)
 
         webView = WebView(this)
         webView.setBackgroundColor(if (isSystemDark()) Color.rgb(16, 19, 24) else Color.rgb(242, 245, 249))
@@ -84,6 +104,9 @@ open class MainActivity : ComponentActivity() {
             }
         })
         webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+        lifecycleScope.launch {
+            if (repository.getSyncState().connected) DriveSyncScheduler.schedule(this@MainActivity)
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled") // Required by the bundled, network-blocked application UI.
@@ -152,6 +175,66 @@ open class MainActivity : ComponentActivity() {
 
     fun launchFolderPicker() = runOnUiThread { chooseFolder.launch(null) }
 
+    fun connectGoogleDrive(action: String = "sync") = runOnUiThread {
+        pendingGoogleAction = action
+        Identity.getAuthorizationClient(this)
+            .authorize(GoogleDriveAuthorization.request())
+            .addOnSuccessListener { authorization ->
+                if (authorization.hasResolution()) {
+                    val pendingIntent = authorization.pendingIntent
+                    if (pendingIntent == null) nativeEvent("sync", false, "Google authorization is unavailable")
+                    else googleAuthorization.launch(IntentSenderRequest.Builder(pendingIntent.intentSender).build())
+                } else completeGoogleAuthorization(authorization)
+            }
+            .addOnFailureListener { nativeEvent("sync", false, it.message ?: "Google authorization failed") }
+    }
+
+    private fun completeGoogleAuthorization(authorization: AuthorizationResult) {
+        val token = authorization.accessToken
+        if (token.isNullOrBlank()) {
+            nativeEvent("sync", false, "Google Drive did not return an access token")
+            return
+        }
+        lifecycleScope.launch {
+            runCatching {
+                val account = authorization.toGoogleSignInAccount()
+                repository.saveSyncState {
+                    it.copy(
+                        connected = true,
+                        accountEmail = account?.email,
+                        accountName = account?.displayName,
+                        accountPhotoUrl = account?.photoUrl?.toString(),
+                        pendingUserAction = false,
+                        lastError = null
+                    )
+                }
+                if (pendingGoogleAction == "backup") {
+                    val bytes = backupManager.createPackageBytes()
+                    val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
+                    GoogleDriveApi(token).backupJournal(bytes, "TradingJournal-$stamp.tpjbackup")
+                    SyncRunResult(0, 0, 0)
+                } else syncCoordinator.sync(token)
+            }.onSuccess { result ->
+                repository.saveSyncState { it.copy(lastSyncAt = System.currentTimeMillis(), lastError = null) }
+                DriveSyncScheduler.schedule(this@MainActivity)
+                if (pendingGoogleAction == "backup") {
+                    repository.notify("backup", "Drive backup created", "A complete .tpjbackup file was saved in Trading Journal Backups.")
+                }
+                nativeEvent(
+                    "sync",
+                    true,
+                    if (pendingGoogleAction == "backup") "Complete backup saved to Google Drive"
+                    else if (result.uploaded + result.changed == 0) "Google Drive connected — journal is up to date"
+                    else "Sync complete: ${result.uploaded} sent, ${result.changed} received",
+                    refresh = true
+                )
+            }.onFailure { error ->
+                repository.saveSyncState { it.copy(lastError = error.message ?: "Sync failed") }
+                nativeEvent("sync", false, error.message ?: "Google Drive sync failed", refresh = true)
+            }
+        }
+    }
+
     private fun writeManualExport(uri: Uri, kind: String) {
         lifecycleScope.launch {
             runCatching {
@@ -180,6 +263,7 @@ open class MainActivity : ComponentActivity() {
                     if (mode == "replace") repository.replace(backup) else repository.merge(backup)
                 }
                 backupManager.scheduleAutoBackup()
+                DriveSyncScheduler.enqueueNow(this@MainActivity)
                 result
             }.onSuccess { result ->
                 nativeEvent(
@@ -218,6 +302,7 @@ open class MainActivity : ComponentActivity() {
                 }
             }.onSuccess { result ->
                 backupManager.scheduleAutoBackup()
+                DriveSyncScheduler.enqueueNow(this@MainActivity)
                 nativeEvent("import", true, "Package import complete: ${result.added} added, ${result.skipped} skipped", refresh = true)
             }.onFailure { nativeEvent("import", false, it.message ?: "Package import failed") }
         }
@@ -228,6 +313,7 @@ open class MainActivity : ComponentActivity() {
             runCatching { attachmentStore.importUris(tradeId, kind, uris) }
                 .onSuccess { items ->
                     backupManager.scheduleAutoBackup()
+                    DriveSyncScheduler.enqueueNow(this@MainActivity)
                     nativeEvent("attachments", true, "${items.size} chart image${if (items.size == 1) "" else "s"} added", refresh = true)
                 }
                 .onFailure { nativeEvent("attachments", false, it.message ?: "Image import failed") }
@@ -288,6 +374,7 @@ class NativeBridge(
         val trade = parseTrade(JSONObject(raw), isNew = true)
         repository.add(trade)
         backupManager.scheduleAutoBackup()
+        DriveSyncScheduler.enqueueNow(activity)
         JSONObject().put("trade", BackupCodec.tradeToJson(trade))
     }
 
@@ -296,6 +383,7 @@ class NativeBridge(
         val trade = parseTrade(JSONObject(raw), isNew = false)
         repository.update(trade)
         backupManager.scheduleAutoBackup()
+        DriveSyncScheduler.enqueueNow(activity)
         JSONObject().put("trade", BackupCodec.tradeToJson(trade))
     }
 
@@ -305,6 +393,7 @@ class NativeBridge(
         repository.delete(id)
         attachmentStore.deleteFiles(files)
         backupManager.scheduleAutoBackup()
+        DriveSyncScheduler.enqueueNow(activity)
         JSONObject()
     }
 
@@ -313,6 +402,7 @@ class NativeBridge(
         val duplicate = repository.duplicate(id)
         attachmentStore.duplicate(id, duplicate.id)
         backupManager.scheduleAutoBackup()
+        DriveSyncScheduler.enqueueNow(activity)
         JSONObject().put("trade", BackupCodec.tradeToJson(duplicate))
     }
 
@@ -330,6 +420,7 @@ class NativeBridge(
         )
         repository.saveSettings(next)
         backupManager.scheduleAutoBackup()
+        DriveSyncScheduler.enqueueNow(activity)
         JSONObject().put("settings", BackupCodec.settingsToJson(next))
     }
 
@@ -337,6 +428,22 @@ class NativeBridge(
     fun clearAllData(): String = response {
         repository.clearJournal()
         attachmentStore.deleteAllFiles()
+        DriveSyncScheduler.enqueueNow(activity)
+        JSONObject()
+    }
+
+    @JavascriptInterface
+    fun connectGoogleDrive() = activity.connectGoogleDrive()
+
+    @JavascriptInterface
+    fun syncNow() = activity.connectGoogleDrive()
+
+    @JavascriptInterface
+    fun backupToGoogleDrive() = activity.connectGoogleDrive("backup")
+
+    @JavascriptInterface
+    fun markNotificationsRead(): String = response {
+        repository.markNotificationsRead()
         JSONObject()
     }
 
@@ -410,6 +517,37 @@ class NativeBridge(
             .put("settings", BackupCodec.settingsToJson(settings))
             .put("backupFolder", backupManager.folderName(settings.backupFolderUri) ?: JSONObject.NULL)
             .put("storage", "Room / SQLite")
+            .put("appVersion", BuildConfig.VERSION_NAME)
+            .put("sync", syncJson())
+            .put("notifications", notificationsJson())
+    }
+
+    private suspend fun syncJson(): JSONObject {
+        val state = repository.getSyncState()
+        return JSONObject()
+            .put("connected", state.connected)
+            .put("email", state.accountEmail ?: JSONObject.NULL)
+            .put("name", state.accountName ?: JSONObject.NULL)
+            .put("photoUrl", state.accountPhotoUrl ?: JSONObject.NULL)
+            .put("lastSyncAt", state.lastSyncAt ?: JSONObject.NULL)
+            .put("lastError", state.lastError ?: JSONObject.NULL)
+            .put("pendingUserAction", state.pendingUserAction)
+            .put("pending", repository.pendingSyncCount())
+    }
+
+    private suspend fun notificationsJson(): JSONArray = JSONArray().also { array ->
+        repository.syncNotifications().forEach { item ->
+            array.put(
+                JSONObject()
+                    .put("id", item.id)
+                    .put("kind", item.kind)
+                    .put("title", item.title)
+                    .put("message", item.message)
+                    .put("createdAt", item.createdAt)
+                    .put("read", item.read)
+                    .put("persistent", item.persistent)
+            )
+        }
     }
 
     private fun parseTrade(json: JSONObject, isNew: Boolean): TradeEntity {

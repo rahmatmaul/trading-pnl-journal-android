@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.0] - 2026-09-13
+
+### Added
+
+- Android and Windows clients using one event-ticket sync protocol.
+- Automatic Google Drive synchronization for trades, settings, deletes, and chart screenshots.
+- Lightweight Windows polling while the app is open, plus immediate sync after local changes.
+- Local outbox, idempotent receipts, deterministic conflict resolution, tombstones, and retry.
+- Content-addressed image blobs with size and SHA-256 verification.
+- Profile and notification sheets with pending count, last-sync status, recovery messages, and persistent storage-full warnings.
+- Manual full `.tpjbackup` upload to a visible `Trading Journal Backups` Drive folder.
+- Explicit Room V2-to-V3 migration and a native Windows SQLite data layer.
+
+### Privacy and compatibility
+
+- Both clients remain offline-first; a local SQLite database is always the immediate source of truth.
+- Android's WebView still cannot access the network. Only the native sync worker can call Drive.
+- Local OAuth credentials and tokens are ignored and never included in source or release archives.
+- Existing Android journals migrate in place without uninstalling the app.
+
 ## [3.1.3] - 2026-09-13
 
 ### Fixed

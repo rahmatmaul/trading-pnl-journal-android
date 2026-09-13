@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
+import java.io.ByteArrayOutputStream
 import java.util.Date
 import java.util.Locale
 
@@ -65,6 +66,18 @@ class BackupManager(
                 attachmentStore
             )
         } ?: error("Unable to open the selected package file")
+    }
+
+    suspend fun createPackageBytes(): ByteArray = withContext(Dispatchers.IO) {
+        ByteArrayOutputStream().use { output ->
+            BackupPackageCodec.write(
+                output,
+                BackupCodec.exportJson(repository.allTrades(), repository.getSettings(), appVersion),
+                repository.allAttachments(),
+                attachmentStore
+            )
+            output.toByteArray()
+        }
     }
 
     fun folderName(uriString: String?): String? {

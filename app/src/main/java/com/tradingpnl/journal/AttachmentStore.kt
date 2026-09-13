@@ -50,6 +50,37 @@ class AttachmentStore(
         }
     }
 
+    suspend fun installSynced(item: AttachmentEntity, bytes: ByteArray) = withContext(Dispatchers.IO) {
+        val checked = AttachmentValidator.validate(item)
+        require(bytes.size.toLong() == checked.sizeBytes) { "Synced image size does not match" }
+        val digest = MessageDigest.getInstance("SHA-256").digest(bytes)
+            .joinToString("") { "%02x".format(it) }
+        require(digest == checked.sha256) { "Synced image checksum does not match" }
+        val destination = fileFor(checked.relativePath)
+        if (destination.exists() && destination.length() == checked.sizeBytes) return@withContext
+        destination.parentFile?.mkdirs()
+        val temporary = File(destination.parentFile, ".${checked.id}.sync")
+        try {
+            FileOutputStream(temporary).use { output ->
+                output.write(bytes)
+                output.fd.sync()
+            }
+            if (destination.exists()) destination.delete()
+            check(temporary.renameTo(destination)) { "Unable to install synced image" }
+        } finally {
+            temporary.delete()
+        }
+    }
+
+    suspend fun cleanupOrphans() = withContext(Dispatchers.IO) {
+        val keep = repository.allAttachments().mapTo(HashSet()) { fileFor(it.relativePath).canonicalPath }
+        rootDir.walkTopDown().filter(File::isFile).forEach { file ->
+            if (file.canonicalPath !in keep) file.delete()
+        }
+        rootDir.walkBottomUp().filter { it.isDirectory && it != rootDir && it.listFiles()?.isEmpty() == true }
+            .forEach(File::delete)
+    }
+
     suspend fun deleteAllFiles() = withContext(Dispatchers.IO) {
         rootDir.listFiles()?.forEach { it.deleteRecursively() }
     }

@@ -231,7 +231,7 @@ class JournalRepositoryTest {
         legacy.version = 1
         legacy.close()
         val migrated = Room.databaseBuilder(context, JournalDatabase::class.java, name)
-            .addMigrations(JournalDatabase.MIGRATION_1_2)
+            .addMigrations(JournalDatabase.MIGRATION_1_2, JournalDatabase.MIGRATION_2_3)
             .build()
         val saved = JournalRepository(migrated).allTrades().single()
         assertEquals("legacy", saved.id)
@@ -244,9 +244,64 @@ class JournalRepositoryTest {
     }
 
     @Test
-    fun bundledV31UiUsesNativeStorageAndHasNoBrowserStorageWarning() {
+    fun localPersistentChangesCreateSyncTickets() = runBlocking {
+        val item = trade("ticket", "win", 20.0)
+        repository.add(item)
+        assertEquals(1, repository.pendingSyncCount())
+
+        repository.update(item.copy(notes = "edited", updatedAt = item.updatedAt + 1))
+        repository.saveSettings(SettingsEntity(theme = "dark"))
+        repository.delete(item.id)
+
+        assertEquals(4, repository.pendingSyncCount())
+        assertEquals(3, repository.pendingSync().count { it.operation == "upsert" })
+        assertEquals(1, repository.pendingSync().count { it.operation == "delete" })
+    }
+
+    @Test
+    fun remoteDeleteTombstoneRejectsOlderTradeUpdate() = runBlocking {
+        val base = trade("remote", "win", 9.0)
+        val remoteDevice = "windows-device"
+        val upsert = SyncEnvelope.local(
+            remoteDevice, "trade", base.id, "upsert", base.updatedAt, BackupCodec.tradeToJson(base)
+        )
+        assertTrue(repository.applyRemote(upsert))
+        assertEquals("remote", repository.allTrades().single().id)
+
+        val deletion = SyncEnvelope.local(
+            remoteDevice, "trade", base.id, "delete", base.updatedAt + 10, org.json.JSONObject().put("id", base.id)
+        )
+        assertTrue(repository.applyRemote(deletion))
+        assertTrue(repository.allTrades().isEmpty())
+
+        val stale = SyncEnvelope.local(
+            remoteDevice, "trade", base.id, "upsert", base.updatedAt + 5, BackupCodec.tradeToJson(base.copy(pnl = 99.0))
+        )
+        assertFalse(repository.applyRemote(stale))
+        assertTrue(repository.allTrades().isEmpty())
+    }
+
+    @Test
+    fun attachmentMetadataUsesTheSameTicketAndTombstoneRules() = runBlocking {
+        val parent = trade("chart-parent", "win", 12.0)
+        repository.add(parent)
+        val image = attachment("chart-ticket", parent.id, "${parent.id}/chart-ticket.png", "a".repeat(64))
+        repository.addAttachment(image)
+
+        assertEquals(1, repository.pendingSync().count { it.entityType == "attachment" && it.operation == "upsert" })
+
+        repository.deleteAttachment(image.id)
+        assertEquals(1, repository.pendingSync().count { it.entityType == "attachment" && it.operation == "delete" })
+    }
+
+    @Test
+    fun bundledV4UiUsesNativeStorageDriveSyncAndHasNoBrowserStorageWarning() {
         val html = context.assets.open("index.html").bufferedReader().use { it.readText() }
-        assertTrue(html.contains("Trading PnL Journal 3.1.3"))
+        assertTrue(html.contains("appVersion:'4.0.0'"))
+        assertTrue(html.contains("Google Drive sync"))
+        assertTrue(html.contains("profileSheet"))
+        assertTrue(html.contains("notificationsSheet"))
+        assertTrue(html.contains("connectGoogleDrive"))
         assertTrue(html.lowercase().contains("adaptive playbook"))
         assertTrue(html.contains("Trade Replay"))
         assertTrue(html.contains("Motion & Glass V3.1"))

@@ -1,22 +1,24 @@
 <p align="center">
-  <img src="docs/banner.svg" alt="Trading PnL Journal V3.1 for Android" width="100%" />
+  <img src="docs/banner.svg" alt="Trading Journal V4 for Android and Windows" width="100%" />
 </p>
 
 <p align="center">
   <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml"><img alt="Android CI" src="https://github.com/rahmatmaul/trading-pnl-journal-android/actions/workflows/android.yml/badge.svg"></a>
-  <img alt="Version 3.1.3" src="https://img.shields.io/badge/version-3.1.3-087BFF">
+  <img alt="Version 4.0.0" src="https://img.shields.io/badge/version-4.0.0-087BFF">
   <img alt="Android 8+" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
-  <img alt="Storage" src="https://img.shields.io/badge/Storage-Room%20%2B%20SQLite-4479A1?logo=sqlite&logoColor=white">
-  <img alt="Offline" src="https://img.shields.io/badge/Internet%20permission-none-111116">
+  <img alt="Windows" src="https://img.shields.io/badge/Windows-10%2F11-0078D4?logo=windows11&logoColor=white">
+  <img alt="Storage" src="https://img.shields.io/badge/Storage-SQLite%20%2B%20Drive-4479A1?logo=sqlite&logoColor=white">
 </p>
 
 <p align="center">
-  Jurnal trading Android yang cepat, visual, dan benar-benar offline.<br>
-  Tidak ada akun, server, iklan, tracker, atau database cloud.
+  Jurnal trading offline-first untuk Android dan Windows.<br>
+  Data langsung aman di SQLite, lalu sinkron otomatis lewat Google Drive saat internet tersedia.
 </p>
 
 <p align="center">
-  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.1.3.apk"><strong>Download APK V3.1.3</strong></a>
+  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingJournal-v4.0.0.apk"><strong>Download Android V4</strong></a>
+  ·
+  <a href="https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingJournal-Windows-v4.0.0.zip"><strong>Download Windows V4</strong></a>
   ·
   <a href="#cara-install"><strong>Cara install</strong></a>
   ·
@@ -25,7 +27,34 @@
   <a href="CHANGELOG.md"><strong>Changelog</strong></a>
 </p>
 
-## Trading PnL Journal V3.1
+## Trading Journal V4
+
+V4 menjadikan satu jurnal bisa dipakai bergantian di Android dan Windows. Setiap
+perubahan ditulis dulu ke SQLite lokal dan mendapat immutable sync ticket. Saat
+online, hanya ticket yang belum diterima perangkat lain yang diproses; jurnal
+tetap dapat dibuka dan diedit penuh ketika offline.
+
+<p align="center">
+  <img src="docs/screenshots/v4-journal.png" alt="Trading Journal V4 dashboard" width="48%" />
+  <img src="docs/screenshots/v4-settings.png" alt="Trading Journal V4 Google Drive sync settings" width="48%" />
+</p>
+
+### Yang baru di V4
+
+- Android dan Windows memakai protocol ticket yang sama untuk trade, settings,
+  tombstone delete, dan screenshot chart.
+- Windows memeriksa tiket baru setiap 60 detik saat aplikasi terbuka; Android
+  memakai worker berjadwal hemat baterai dan keduanya langsung antre sync setelah perubahan lokal.
+- Google Drive `appDataFolder` menjadi jembatan sinkron tersembunyi; bukan sumber
+  kebenaran tunggal dan tidak perlu tombol sync untuk pemakaian normal.
+- Conflict resolution deterministik berbasis `updatedAt` dan event ID.
+- Profile sheet, notification center, pending-ticket counter, last-sync status,
+  pesan recovery, dan peringatan merah bila storage Drive bermasalah.
+- Tombol backup manual membuat paket lengkap `.tpjbackup` di folder terlihat
+  **Trading Journal Backups** pada Google Drive.
+- Migrasi Room V2→V3 eksplisit; data versi lama tetap dipertahankan.
+
+## Fondasi UI V3.1
 
 <p align="center"><img src="docs/app-icon-v25-master.png" alt="Trading PnL Journal folded journal icon" width="128" /></p>
 
@@ -104,8 +133,11 @@ tanpa animasi scale, opacity, blur, atau shadow yang mahal.
 | Trade management | Add, edit, delete, duplicate, detail, filter periode/result/symbol, dan sorting |
 | Risk settings | Starting balance, profit target, max drawdown, dan daily loss warning |
 | Personalization | Light, dark, atau mengikuti tema Android |
+| Cross-device sync | Ticket-based automatic sync Android ↔ Windows melalui Google Drive |
+| Sync safety | Offline queue, idempotent receipts, deterministic merge, tombstone delete, dan retry |
+| Notifications | Status sync, recovery, dan peringatan Drive penuh tersimpan di aplikasi |
 | Data portability | Full package, JSON, CSV, Merge import, Replace import, dan automatic recovery |
-| Offline | Asset UI lokal, Room/SQLite, tanpa permission internet |
+| Offline-first | Semua baca/tulis memakai SQLite lokal; internet hanya dipakai saat Drive sync/backup diaktifkan |
 
 ## Data yang tidak hilang saat aplikasi ditutup
 
@@ -121,21 +153,22 @@ jadi portable backup tetap penting.
 
 ```mermaid
 flowchart LR
-    UI[Bundled HTML/CSS/JS] -->|AndroidJournal bridge| K[Kotlin shell]
-    K --> R[JournalRepository]
-    R --> ROOM[Room]
-    ROOM --> SQL[(SQLite)]
-    K --> IMG[Private chart images]
-    R --> SAF[Storage Access Framework]
-    IMG --> PKG[.tpjbackup ZIP]
-    SQL --> PKG
-    SAF --> PKG
+    A[Android UI] --> AR[Room / SQLite]
+    W[Windows UI] --> WS[SQLite]
+    AR --> AO[Local outbox tickets]
+    WS --> WO[Local outbox tickets]
+    AO --> D[(Google Drive appDataFolder)]
+    WO --> D
+    D --> AR
+    D --> WS
+    AR --> B[Visible .tpjbackup]
+    WS --> B
 ```
 
-WebView hanya memuat asset lokal dari `appassets.androidplatform.net`. Request
-ke origin lain diblokir, DOM storage dimatikan, dan manifest tidak meminta
-permission `INTERNET`. Gambar chart disimpan di private app storage; metadata dan
-SHA-256 checksum disimpan di Room.
+UI hanya memuat asset lokal. Android WebView tetap memblokir navigasi eksternal;
+akses jaringan dilakukan oleh native sync worker, bukan halaman web. Gambar chart
+disimpan privat pada tiap perangkat dan dipindahkan sebagai blob SHA-256 tanpa
+mengunggah duplikat yang sama.
 
 ## Backup dan restore
 
@@ -159,11 +192,16 @@ melalui Android Storage Access Framework. Aplikasi menyimpan hingga lima snapsho
 
 ## Cara install
 
-1. Download [`TradingPnLJournal-v3.1.3.apk`](https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingPnLJournal-v3.1.3.apk).
+1. Download [`TradingJournal-v4.0.0.apk`](https://github.com/rahmatmaul/trading-pnl-journal-android/raw/main/release/TradingJournal-v4.0.0.apk).
 2. Buka file melalui File Manager di Android.
 3. Jika diminta, aktifkan **Install unknown apps** hanya untuk File Manager yang
    digunakan.
-4. Tekan **Install**, buka aplikasi, lalu pilih automatic recovery folder.
+4. Tekan **Install**, buka aplikasi, lalu hubungkan akun Google pada Profile atau Settings bila ingin sync.
+
+Windows: download `TradingJournal-Windows-v4.0.0.zip`, extract seluruh folder,
+lalu jalankan `TradingJournal.exe`. Gunakan akun Google test-user yang sama di
+Android dan Windows. Credential OAuth Desktop dibaca dari `%APPDATA%\TradingJournal`
+atau file `client_secret_*.json` terbaru di Downloads dan tidak disertakan di repo.
 
 Untuk update dari versi lama, pasang APK baru langsung di atas aplikasi lama dan
 **jangan uninstall versi lama terlebih dahulu**. Migrasi Room eksplisit
@@ -177,7 +215,9 @@ Prasyarat: JDK 17/21, Android SDK Platform 35, dan Build Tools 35+.
 Windows:
 
 ```powershell
-.\gradlew.bat testDebugUnitTest lintDebug assembleDebug --no-daemon
+.\gradlew.bat :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --no-daemon
+$env:JAVA_HOME = "C:\path\to\jdk-21"
+.\desktop\package-windows.ps1 -Version 4.0.0
 ```
 
 Linux/macOS:
@@ -186,7 +226,8 @@ Linux/macOS:
 ./gradlew testDebugUnitTest lintDebug assembleDebug --no-daemon
 ```
 
-APK debug tersedia di `app/build/outputs/apk/debug/app-debug.apk`. Asset font
+APK debug tersedia di `app/build/outputs/apk/debug/app-debug.apk`; paket Windows
+mandiri tersedia di `release/TradingJournal-Windows-v4.0.0.zip`. Asset font
 mentah tidak disertakan dalam repository; source tetap dapat dibangun dan akan
 menggunakan system sans-serif sebagai fallback bila asset lokal tidak tersedia.
 
@@ -194,6 +235,7 @@ menggunakan system sans-serif sebagai fallback bila asset lokal tidak tersedia.
 
 | Versi | Fokus update |
 | --- | --- |
+| **V4.0** | Android + Windows, auto-sync Drive, screenshot sync, profile, notifications, dan backup Drive |
 | **V3.1.3** | Sheet compositor terpisah, respons tombol lebih cepat, dan Quick Log lazy paint |
 | **V3.1.2** | Kaca Android lebih solid, short-lift sheet, dan navigasi satu tahap 210 ms |
 | **V3.1.1** | Android performance path: faux glass, single-layer motion, dan durasi transisi lebih singkat |
@@ -207,7 +249,7 @@ Rincian setiap rilis tersedia di [CHANGELOG.md](CHANGELOG.md).
 
 ## Pengujian
 
-Suite JVM/Robolectric mencakup 15 test untuk CRUD, duplicate, reopen persistence,
+Suite JVM/Robolectric mencakup 21 test untuk CRUD, duplicate, reopen persistence,
 settings, Win/Loss sign normalization, JSON legacy/V2, CSV escaping, malformed
 backup, duplicate merge, atomic replace, attachment cascade, package checksum
 round-trip, dan migrasi database V1→V2 tanpa kehilangan trade.
@@ -218,9 +260,9 @@ round-trip, dan migrasi database V1→V2 tanpa kehilangan trade.
 
 ## Privasi dan keamanan
 
-- Tidak ada analytics, telemetry, iklan, login, atau remote crash reporting.
-- Tidak ada broad storage permission maupun permission internet.
-- Data jurnal berada di perangkat dan folder backup yang pengguna pilih.
+- Tidak ada analytics, telemetry, iklan, atau remote crash reporting.
+- Tidak ada broad storage permission. Internet hanya dipakai saat fitur Google Drive diaktifkan.
+- Data jurnal utama berada di perangkat; Drive menjadi jembatan sync dan lokasi backup pilihan pengguna.
 - Import selalu divalidasi sebelum data aktif diubah.
 
 ## Kontribusi

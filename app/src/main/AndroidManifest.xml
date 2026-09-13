@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application
         android:allowBackup="false"
         android:hardwareAccelerated="true"
@@ -7,7 +9,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher_v3"
         android:usesCleartextTraffic="false"
-        android:label="Trading PnL Journal"
+        android:label="Trading Journal"
         android:roundIcon="@mipmap/ic_launcher_round_v3"
         android:theme="@style/Theme.TradingJournal">
         <activity
@@ -17,7 +19,7 @@
             android:name=".LauncherV3Activity"
             android:exported="true"
             android:icon="@mipmap/ic_launcher_v3"
-            android:label="Trading PnL Journal"
+            android:label="Trading Journal"
             android:roundIcon="@mipmap/ic_launcher_round_v3">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
