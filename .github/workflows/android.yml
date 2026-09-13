@@ -1,4 +1,4 @@
-name: Android and Windows CI
+name: Android CI
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  android:
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -25,32 +25,10 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Verify and build
-        run: ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --no-daemon
+        run: ./gradlew testDebugUnitTest lintDebug assembleDebug --no-daemon
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: trading-pnl-journal-debug
           path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
-
-  windows:
-    runs-on: windows-latest
-    timeout-minutes: 20
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-      - name: Verify and build Windows distribution
-        run: .\gradlew.bat :desktop:test :desktop:installDist --no-daemon
-      - name: Upload Windows distribution
-        uses: actions/upload-artifact@v4
-        with:
-          name: trading-journal-windows
-          path: desktop/build/install/desktop/**
           if-no-files-found: error

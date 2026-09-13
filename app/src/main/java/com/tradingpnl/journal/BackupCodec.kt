@@ -103,13 +103,13 @@ object BackupCodec {
             val parsed = ArrayList<TradeEntity>(array.length())
             for (index in 0 until array.length()) {
                 try {
-                    parsed += tradeFromJson(array.getJSONObject(index))
+                    parsed += parseTrade(array.getJSONObject(index))
                 } catch (error: Exception) {
                     throw IllegalArgumentException("Invalid trade at item ${index + 1}: ${error.message}")
                 }
             }
             val importedSettings = if (root.has("settings") && !root.isNull("settings")) {
-                settingsFromJson(root.getJSONObject("settings"))
+                parseSettings(root.getJSONObject("settings"))
             } else null
             return BackupData(parsed, importedSettings)
         } catch (error: JSONException) {
@@ -141,7 +141,7 @@ object BackupCodec {
         }
     }
 
-    fun tradeFromJson(json: JSONObject): TradeEntity {
+    private fun parseTrade(json: JSONObject): TradeEntity {
         val date = json.getString("date")
         val timestamp = parseTimestamp(json.opt("timestamp"), date)
         val now = System.currentTimeMillis()
@@ -172,14 +172,13 @@ object BackupCodec {
         )
     }
 
-    fun settingsFromJson(json: JSONObject): SettingsEntity {
+    private fun parseSettings(json: JSONObject): SettingsEntity {
         val parsed = SettingsEntity(
             theme = json.optString("theme", "system"),
             startingBalance = optionalNumber(json, "startingBalance"),
             profitTarget = optionalNumber(json, "profitTarget"),
             maxDrawdown = optionalNumber(json, "maxDrawdown"),
-            dailyDrawdown = optionalNumber(json, "dailyDrawdown"),
-            updatedAt = json.optLong("updatedAt", 0L)
+            dailyDrawdown = optionalNumber(json, "dailyDrawdown")
         )
         return SettingsValidator.validate(parsed)
     }
@@ -223,8 +222,6 @@ object BackupCodec {
         .put("realizedR", trade.realizedR ?: JSONObject.NULL)
         .put("executionScore", trade.executionScore ?: JSONObject.NULL)
         .put("reviewed", trade.reviewed)
-        .put("createdAt", trade.createdAt)
-        .put("updatedAt", trade.updatedAt)
 
     fun attachmentToJson(attachment: AttachmentEntity): JSONObject = JSONObject()
         .put("id", attachment.id)
@@ -261,7 +258,6 @@ object BackupCodec {
         .put("profitTarget", settings.profitTarget ?: JSONObject.NULL)
         .put("maxDrawdown", settings.maxDrawdown ?: JSONObject.NULL)
         .put("dailyDrawdown", settings.dailyDrawdown ?: JSONObject.NULL)
-        .put("updatedAt", settings.updatedAt)
 
     private fun csvEscape(value: String): String = "\"${value.replace("\"", "\"\"")}\""
 }

@@ -16,4 +16,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "TradingPnLJournal"
 include(":app")
-include(":desktop")

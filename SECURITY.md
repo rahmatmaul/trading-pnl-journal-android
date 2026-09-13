@@ -5,6 +5,7 @@
 | Version | Supported |
 | --- | --- |
 | 4.x | Yes |
+| 3.x | Security fixes only |
 
 ## Reporting a vulnerability
 
@@ -14,10 +15,8 @@ Jangan pernah melampirkan backup jurnal asli. Buat fixture anonim dengan nilai d
 
 ## Security model
 
-- Akses internet hanya digunakan oleh native sync layer ketika Google Drive diaktifkan.
+- Aplikasi tidak meminta permission internet.
 - WebView hanya memuat asset lokal dan memblokir navigasi/network eksternal.
 - JavaScript bridge hanya diekspos kepada halaman aplikasi yang dibundel.
 - Backup eksternal hanya ditulis ke lokasi yang dipilih pengguna melalui SAF.
 - Database Room tidak menggunakan destructive migration fallback.
-- OAuth credential, token, dan file `.secrets` tidak boleh dimasukkan ke repository.
-- Ticket sync bersifat idempotent dan blob gambar diverifikasi menggunakan SHA-256.

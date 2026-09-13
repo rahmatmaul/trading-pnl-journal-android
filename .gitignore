@@ -10,10 +10,3 @@ captures/
 release/
 # Optional local design assets.
 /font/
-
-# Local OAuth credentials. Never commit Google client files.
-client_secret_*.json
-credentials*.json
-secrets/
-.secrets/
-*.oauth.json

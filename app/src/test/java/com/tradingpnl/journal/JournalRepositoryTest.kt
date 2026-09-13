@@ -231,7 +231,7 @@ class JournalRepositoryTest {
         legacy.version = 1
         legacy.close()
         val migrated = Room.databaseBuilder(context, JournalDatabase::class.java, name)
-            .addMigrations(JournalDatabase.MIGRATION_1_2, JournalDatabase.MIGRATION_2_3)
+            .addMigrations(JournalDatabase.MIGRATION_1_2, JournalDatabase.MIGRATION_2_4)
             .build()
         val saved = JournalRepository(migrated).allTrades().single()
         assertEquals("legacy", saved.id)
@@ -244,64 +244,48 @@ class JournalRepositoryTest {
     }
 
     @Test
-    fun localPersistentChangesCreateSyncTickets() = runBlocking {
-        val item = trade("ticket", "win", 20.0)
-        repository.add(item)
-        assertEquals(1, repository.pendingSyncCount())
+    fun migrationThreeToFourRemovesCloudStateAndKeepsOfflineJournal() = runBlocking {
+        database.close()
+        val name = "offline-migration-${UUID.randomUUID()}.db"
+        val path = context.getDatabasePath(name)
+        path.parentFile?.mkdirs()
+        val cloudDb = SQLiteDatabase.openOrCreateDatabase(path, null)
+        cloudDb.execSQL("CREATE TABLE trades (id TEXT NOT NULL PRIMARY KEY, date TEXT NOT NULL, timestamp INTEGER NOT NULL, result TEXT NOT NULL, pnl REAL NOT NULL, symbol TEXT NOT NULL, notes TEXT NOT NULL, entryTime TEXT NOT NULL, createdAt INTEGER NOT NULL, updatedAt INTEGER NOT NULL, setup TEXT NOT NULL DEFAULT '', session TEXT NOT NULL DEFAULT '', emotion TEXT NOT NULL DEFAULT '', mistakes TEXT NOT NULL DEFAULT '', plannedR REAL, realizedR REAL, executionScore INTEGER, reviewed INTEGER NOT NULL DEFAULT 0)")
+        listOf("date", "timestamp", "symbol", "result", "setup", "session").forEach {
+            cloudDb.execSQL("CREATE INDEX index_trades_$it ON trades($it)")
+        }
+        cloudDb.execSQL("CREATE TABLE settings (id INTEGER NOT NULL PRIMARY KEY, theme TEXT NOT NULL, startingBalance REAL, profitTarget REAL, maxDrawdown REAL, dailyDrawdown REAL, backupFolderUri TEXT, updatedAt INTEGER NOT NULL DEFAULT 0)")
+        cloudDb.execSQL("INSERT INTO settings VALUES (1,'dark',5000.0,1000.0,500.0,200.0,'content://backup',99)")
+        cloudDb.execSQL("CREATE TABLE attachments (id TEXT NOT NULL PRIMARY KEY, tradeId TEXT NOT NULL, kind TEXT NOT NULL, fileName TEXT NOT NULL, mimeType TEXT NOT NULL, relativePath TEXT NOT NULL, caption TEXT NOT NULL DEFAULT '', position INTEGER NOT NULL DEFAULT 0, sha256 TEXT NOT NULL, sizeBytes INTEGER NOT NULL, createdAt INTEGER NOT NULL, FOREIGN KEY(tradeId) REFERENCES trades(id) ON UPDATE NO ACTION ON DELETE CASCADE)")
+        cloudDb.execSQL("CREATE INDEX index_attachments_tradeId ON attachments(tradeId)")
+        cloudDb.execSQL("CREATE INDEX index_attachments_tradeId_position ON attachments(tradeId, position)")
+        listOf("sync_outbox", "sync_receipts", "sync_versions", "sync_state", "journal_notifications").forEach {
+            cloudDb.execSQL("CREATE TABLE $it (id TEXT)")
+        }
+        cloudDb.version = 3
+        cloudDb.close()
 
-        repository.update(item.copy(notes = "edited", updatedAt = item.updatedAt + 1))
-        repository.saveSettings(SettingsEntity(theme = "dark"))
-        repository.delete(item.id)
-
-        assertEquals(4, repository.pendingSyncCount())
-        assertEquals(3, repository.pendingSync().count { it.operation == "upsert" })
-        assertEquals(1, repository.pendingSync().count { it.operation == "delete" })
+        val migrated = Room.databaseBuilder(context, JournalDatabase::class.java, name)
+            .addMigrations(JournalDatabase.MIGRATION_3_4)
+            .build()
+        val settings = JournalRepository(migrated).getSettings()
+        assertEquals("dark", settings.theme)
+        assertEquals(5_000.0, settings.startingBalance!!, 0.0)
+        assertEquals("content://backup", settings.backupFolderUri)
+        val cursor = migrated.openHelper.readableDatabase.query(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'sync_%'"
+        )
+        cursor.use { assertFalse(it.moveToFirst()) }
+        migrated.close()
+        context.deleteDatabase(name)
+        database = Room.inMemoryDatabaseBuilder(context, JournalDatabase::class.java).build()
+        repository = JournalRepository(database)
     }
 
     @Test
-    fun remoteDeleteTombstoneRejectsOlderTradeUpdate() = runBlocking {
-        val base = trade("remote", "win", 9.0)
-        val remoteDevice = "windows-device"
-        val upsert = SyncEnvelope.local(
-            remoteDevice, "trade", base.id, "upsert", base.updatedAt, BackupCodec.tradeToJson(base)
-        )
-        assertTrue(repository.applyRemote(upsert))
-        assertEquals("remote", repository.allTrades().single().id)
-
-        val deletion = SyncEnvelope.local(
-            remoteDevice, "trade", base.id, "delete", base.updatedAt + 10, org.json.JSONObject().put("id", base.id)
-        )
-        assertTrue(repository.applyRemote(deletion))
-        assertTrue(repository.allTrades().isEmpty())
-
-        val stale = SyncEnvelope.local(
-            remoteDevice, "trade", base.id, "upsert", base.updatedAt + 5, BackupCodec.tradeToJson(base.copy(pnl = 99.0))
-        )
-        assertFalse(repository.applyRemote(stale))
-        assertTrue(repository.allTrades().isEmpty())
-    }
-
-    @Test
-    fun attachmentMetadataUsesTheSameTicketAndTombstoneRules() = runBlocking {
-        val parent = trade("chart-parent", "win", 12.0)
-        repository.add(parent)
-        val image = attachment("chart-ticket", parent.id, "${parent.id}/chart-ticket.png", "a".repeat(64))
-        repository.addAttachment(image)
-
-        assertEquals(1, repository.pendingSync().count { it.entityType == "attachment" && it.operation == "upsert" })
-
-        repository.deleteAttachment(image.id)
-        assertEquals(1, repository.pendingSync().count { it.entityType == "attachment" && it.operation == "delete" })
-    }
-
-    @Test
-    fun bundledV4UiUsesNativeStorageDriveSyncAndHasNoBrowserStorageWarning() {
+    fun bundledOfflineUiUsesNativeStorageAndHasNoBrowserStorageWarning() {
         val html = context.assets.open("index.html").bufferedReader().use { it.readText() }
-        assertTrue(html.contains("appVersion:'4.0.0'"))
-        assertTrue(html.contains("Google Drive sync"))
-        assertTrue(html.contains("profileSheet"))
-        assertTrue(html.contains("notificationsSheet"))
-        assertTrue(html.contains("connectGoogleDrive"))
+        assertTrue(html.contains("Trading Journal 4.0.1"))
         assertTrue(html.lowercase().contains("adaptive playbook"))
         assertTrue(html.contains("Trade Replay"))
         assertTrue(html.contains("Motion & Glass V3.1"))
@@ -312,6 +296,8 @@ class JournalRepositoryTest {
         assertTrue(html.contains("AndroidJournal"))
         assertFalse(html.contains("localStorage"))
         assertFalse(html.contains("Browser storage is unavailable"))
+        assertFalse(html.contains("Google Drive"))
+        assertFalse(html.contains("connectGoogleDrive"))
     }
 
     private fun trade(id: String, result: String, pnl: Double): TradeEntity {
